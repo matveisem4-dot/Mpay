@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mpay Client</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+  <style>
+    :root {
+      --bg: #06090e;
+      --card-bg: rgba(18, 24, 38, 0.95);
+      --border: rgba(255, 255, 255, 0.12);
+      --accent-blue: #29b6f6;
+      --accent-green: #00e676;
+      --text: #ffffff;
+      --muted: #8E9BAE;
+      --danger: #ff5252;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100dvh; display: flex; flex-direction: column; }
+    .hidden { display: none !important; }
+    .header { height: 56px; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: #0c121d; }
+    .screen { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-primary { background: var(--accent-blue); color: #000; box-shadow: 0 0 15px rgba(41, 182, 246, 0.3); }
+    .btn-secondary { background: rgba(255, 255, 255, 0.08); color: #fff; border: 1px solid var(--border); }
+    .btn-danger { background: rgba(255, 82, 82, 0.15); color: var(--danger); border: 1px solid rgba(255, 82, 82, 0.3); }
+    .input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 10px; color: #fff; outline: none; }
+    .card-box { background: linear-gradient(135deg, #121926 0%, #1a2333 100%); border: 1px solid var(--border); border-radius: 16px; padding: 20px; text-align: center; }
+    .scanner-v { width: 100%; height: 220px; object-fit: cover; border-radius: 12px; background: #000; }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <span style="font-weight: 800; color: var(--accent-blue);">Mpay Wallet</span>
+    <span id="card-status-tag" class="badge">Авторизация</span>
+  </header>
+
+  <!-- ВХОД -->
+  <main id="sc-login" class="screen" style="justify-content: center;">
+    <h2 style="text-align: center; margin-bottom: 10px;">Вход в кошелек</h2>
+    <input type="text" id="card-input" class="input" placeholder="Номер карты" />
+    <input type="password" id="pin-input" class="input" maxlength="4" placeholder="PIN-код" />
+    <button onclick="login()" class="btn btn-primary">Войти</button>
+  </main>
+
+  <!-- КАБИНЕТ -->
+  <main id="sc-dash" class="screen hidden">
+    <div class="card-box">
+      <span style="color: var(--muted); font-size: 0.85rem;">Доступный баланс</span>
+      <div style="font-size: 2.4rem; font-weight: 800; color: var(--accent-green); margin: 8px 0;">
+        <span id="bal-val">0</span> <small style="font-size: 1rem;">EGP</small>
+      </div>
+      <div id="card-num-val" style="font-family: monospace; color: var(--muted);">**** **** **** ****</div>
+    </div>
+
+    <button onclick="openScanner()" class="btn btn-primary"><i class="fa-solid fa-qrcode"></i> Оплатить по QR-коду</button>
+    <button id="freeze-btn" onclick="toggleFreeze()" class="btn btn-secondary"><i class="fa-solid fa-snowflake"></i> Заморозить карту</button>
+    <button onclick="changePin()" class="btn btn-secondary"><i class="fa-solid fa-key"></i> Сменить PIN-код</button>
+    <button onclick="registerSmile()" class="btn btn-secondary"><i class="fa-solid fa-face-smile"></i> Привязать Smile Pay</button>
+    <button onclick="logout()" class="btn btn-danger">Выйти</button>
+  </main>
+
+  <!-- СКАНЕР QR -->
+  <main id="sc-qr" class="screen hidden">
+    <h3>Сканер Mpay QR</h3>
+    <video id="qr-video" class="scanner-v" autoplay playsinline></video>
+    <p style="color: var(--muted); font-size: 0.8rem; text-align: center;">Наведите камеру на QR-код терминала</p>
+    <button onclick="closeScanner()" class="btn btn-danger">Отмена</button>
+  </main>
+
+  <script>
+    const firebaseConfig = { databaseURL: "https://mpay-4f703-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let userCard = null, scanInterval = null;
+
+    async function login() {
+      const cardNum = document.getElementById('card-input').value.trim();
+      const pin = document.getElementById('pin-input').value.trim();
+
+      const snap = await db.ref(`cards/${cardNum}`).once('value');
+      if (snap.exists() && snap.val().pin === pin) {
+        userCard = snap.val();
+        updateUI();
+        document.getElementById('sc-login').classList.add('hidden');
+        document.getElementById('sc-dash').classList.remove('hidden');
+      } else alert("Неверный номер карты или PIN!");
+    }
+
+    function updateUI() {
+      document.getElementById('bal-val').textContent = userCard.isAdminCard ? "∞" : userCard.balance;
+      document.getElementById('card-num-val').textContent = userCard.cardNumber.replace(/(.{4})/g, '$1 ').trim();
+      document.getElementById('freeze-btn').textContent = userCard.isFrozen ? "Разморозить карту" : "Заморозить карту";
+    }
+
+    async function toggleFreeze() {
+      const newSt = !userCard.isFrozen;
+      await db.ref(`cards/${userCard.cardNumber}`).update({ isFrozen: newSt });
+      userCard.isFrozen = newSt;
+      updateUI();
+    }
+
+    async function changePin() {
+      const p = prompt("Введите новый 4-значный PIN:");
+      if (p && p.length === 4) {
+        await db.ref(`cards/${userCard.cardNumber}`).update({ pin: p });
+        userCard.pin = p;
+        alert("PIN изменен!");
+      }
+    }
+
+    async function registerSmile() {
+      await db.ref(`cards/${userCard.cardNumber}`).update({ faceRegistered: true });
+      alert("Smile Pay активирован!");
+    }
+
+    function logout() {
+      userCard = null;
+      document.getElementById('sc-dash').classList.add('hidden');
+      document.getElementById('sc-login').classList.remove('hidden');
+    }
+
+    function openScanner() {
+      document.getElementById('sc-dash').classList.add('hidden');
+      document.getElementById('sc-qr').classList.remove('hidden');
+      const video = document.getElementById('qr-video');
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
+        video.srcObject = stream;
+        scanInterval = setInterval(() => {
+          if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            const canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const code = jsQR(ctx.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height);
+            if (code) processQrPayload(code.data);
+          }
+        }, 400);
+      });
+    }
+
+    async function processQrPayload(str) {
+      if (!str.startsWith("mpay://pay")) return alert("ОШИБКА: Этот QR-код не принадлежит системе Mpay!");
+      closeScanner();
+      
+      const urlParams = new URLSearchParams(str.split('?')[1]);
+      const termId = urlParams.get('termId');
+      const amt = parseFloat(urlParams.get('amt'));
+
+      const tSnap = await db.ref(`terminals/${termId}`).once('value');
+      if (tSnap.val() && tSnap.val().status === 'blocked') return alert("ОШИБКА: Терминал заблокирован!");
+
+      if (userCard.isFrozen) return alert("ОШИБКА: Карта заморожена!");
+      if (!userCard.isAdminCard && userCard.balance < amt) return alert("Недостаточно средств!");
+
+      if (confirm(`Подтвердить списание ${amt} EGP?`)) {
+        const newBal = userCard.isAdminCard ? userCard.balance : (userCard.balance - amt);
+        await db.ref(`cards/${userCard.cardNumber}`).update({ balance: newBal });
+        await db.ref(`transactions/${Date.now()}`).set({ termId: termId, card: userCard.cardNumber, amt: amt, ts: Date.now() });
+        userCard.balance = newBal;
+        updateUI();
+        alert("Оплата успешно проведена!");
+      }
+    }
+
+    function closeScanner() {
+      const video = document.getElementById('qr-video');
+      if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+      clearInterval(scanInterval);
+      document.getElementById('sc-qr').classList.add('hidden');
+      document.getElementById('sc-dash').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
