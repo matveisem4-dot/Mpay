@@ -4,14 +4,638 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Mpay Terminal</title>
-  <link rel="stylesheet" href="style.css">
-  <!-- Подключаем иконки FontAwesome -->
+  
+  <!-- Иконки и сторонние библиотеки -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Подключаем библиотеку для генерации QR-кодов -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- Firebase SDK (готов к подключению базы) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    /* Базовые сбросы и переменные темы (Сбербанк Premium Dark) */
+    :root {
+      --bg-color: #080B10;
+      --card-bg: rgba(22, 28, 38, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-green: #00e676;
+      --accent-green-glow: rgba(0, 230, 118, 0.4);
+      --accent-hover: #00c853;
+      --text-main: #FFFFFF;
+      --text-muted: #8E9BAE;
+      --danger-color: #ff5252;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Правило скрытия элементов */
+    .hidden {
+      display: none !important;
+    }
+
+    /* Контейнер Терминала */
+    .terminal-container {
+      width: 100%;
+      max-width: 1024px;
+      height: 100vh;
+      max-height: 768px;
+      background: radial-gradient(circle at top right, #111a2e 0%, #080B10 60%);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      border: 1px solid var(--card-border);
+    }
+
+    /* 1. АНИМАЦИЯ СТАРТОВОГО ЭКРАНА (SPLASH) */
+    .splash-screen {
+      position: absolute;
+      inset: 0;
+      background-color: #080B10;
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: splashFadeOut 0.8s cubic-bezier(0.77, 0, 0.175, 1) 2s forwards;
+    }
+
+    .splash-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .logo-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-text-full {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, #ffffff 0%, var(--accent-green) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .check-badge {
+      width: 48px;
+      height: 48px;
+      background: var(--accent-green);
+      color: #000;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      box-shadow: 0 0 25px var(--accent-green-glow);
+    }
+
+    .splash-subtitle {
+      color: var(--text-muted);
+      margin-top: 16px;
+      font-size: 1.1rem;
+    }
+
+    @keyframes splashFadeOut {
+      to {
+        opacity: 0;
+        visibility: hidden;
+      }
+    }
+
+    /* 2. ШАПКА ТЕРМИНАЛА */
+    .terminal-header {
+      height: 80px;
+      padding: 0 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .brand-logo:active {
+      transform: scale(0.95);
+    }
+
+    .logo-icon-circle {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #1f293d, #111827);
+      border: 2px solid var(--accent-green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 0 15px var(--accent-green-glow);
+    }
+
+    .logo-m {
+      font-weight: 900;
+      font-size: 1.3rem;
+      color: #fff;
+    }
+
+    .logo-check {
+      position: absolute;
+      top: -2px;
+      right: -4px;
+      background: var(--accent-green);
+      color: #000;
+      font-size: 0.6rem;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-name {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .dot.online {
+      width: 10px;
+      height: 10px;
+      background-color: var(--accent-green);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent-green);
+    }
+
+    .clock-display {
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    /* 3. ЭКРАНЫ */
+    .screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 32px;
+      position: relative;
+    }
+
+    /* Главный Экран Ожидания */
+    #screen-idle {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .glowing-ring {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-green-glow) 0%, transparent 70%);
+      border: 2px solid var(--accent-green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      color: var(--accent-green);
+      margin-bottom: 24px;
+      animation: pulseGlow 2.5s infinite ease-in-out;
+    }
+
+    .main-title {
+      font-size: 2.8rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .main-subtitle {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      margin-bottom: 48px;
+    }
+
+    .payment-methods-badges {
+      display: flex;
+      gap: 16px;
+    }
+
+    .badge-item {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 12px 24px;
+      border-radius: 30px;
+      backdrop-filter: blur(10px);
+      font-size: 1rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-item i {
+      color: var(--accent-green);
+    }
+
+    /* 4. ВВОД СУММЫ (KEYPAD) */
+    .amount-container {
+      max-width: 400px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .amount-display {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin: 20px 0;
+      color: var(--accent-green);
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .amount-display .currency {
+      font-size: 1.5rem;
+      color: var(--text-muted);
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .key-btn {
+      height: 64px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 1.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .key-btn:active {
+      transform: scale(0.95);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .key-btn.confirm-btn {
+      background: var(--accent-green);
+      color: #000;
+    }
+
+    .key-btn.clear-btn {
+      color: var(--danger-color);
+    }
+
+    /* 5. ЭКРАН ПРОЦЕССА ОПЛАТЫ */
+    .nfc-tap-banner {
+      background: linear-gradient(90deg, rgba(0, 230, 118, 0.1), rgba(0, 230, 118, 0.2), rgba(0, 230, 118, 0.1));
+      border: 1px solid var(--accent-green);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .nfc-icon-anim {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.5rem;
+      color: var(--accent-green);
+    }
+
+    .payment-details-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .pay-amount {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--accent-green);
+    }
+
+    .timer-box {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .timer-box span {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .payment-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      flex: 1;
+      margin-bottom: 24px;
+    }
+
+    .pay-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .pay-card h3 {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .qrcode-wrapper {
+      background: #fff;
+      padding: 16px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .camera-wrapper {
+      width: 100%;
+      height: 180px;
+      background: #000;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    #face-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .face-scanner-overlay {
+      position: absolute;
+      inset: 0;
+      border: 2px dashed var(--accent-green);
+      border-radius: 12px;
+      pointer-events: none;
+    }
+
+    .scan-line {
+      width: 100%;
+      height: 3px;
+      background: var(--accent-green);
+      box-shadow: 0 0 10px var(--accent-green);
+      position: absolute;
+      top: 0;
+      animation: scanMove 2s infinite ease-in-out;
+    }
+
+    @keyframes scanMove {
+      0% { top: 0; }
+      50% { top: 100%; }
+      100% { top: 0; }
+    }
+
+    /* 6. КНОПКИ И МОДАЛЬНЫЕ ОКНА */
+    .action-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: none;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn.primary {
+      background: var(--accent-green);
+      color: #000;
+    }
+
+    .action-btn.secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      margin-top: 12px;
+    }
+
+    .action-btn.cancel {
+      background: rgba(255, 82, 82, 0.15);
+      color: var(--danger-color);
+      border: 1px solid rgba(255, 82, 82, 0.3);
+    }
+
+    .glow-btn {
+      background: var(--accent-green);
+      color: #000;
+      box-shadow: 0 0 15px var(--accent-green-glow);
+    }
+
+    .text-link-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      margin-top: 16px;
+      cursor: pointer;
+    }
+
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .modal-card {
+      background: #111827;
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      width: 90%;
+      max-width: 480px;
+      padding: 24px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .virtual-card {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border: 1px solid var(--accent-green);
+      border-radius: 16px;
+      padding: 24px;
+      position: relative;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .vcard-chip {
+      font-size: 2rem;
+      color: #e2e8f0;
+    }
+
+    .vcard-logo {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      font-weight: 800;
+      font-size: 1.3rem;
+      color: var(--accent-green);
+    }
+
+    .vcard-number {
+      font-size: 1.4rem;
+      letter-spacing: 3px;
+      margin: 24px 0;
+      font-family: monospace;
+    }
+
+    .vcard-footer {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .vcard-lbl {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .vcard-val {
+      font-weight: 700;
+    }
+
+    .centered {
+      text-align: center;
+    }
+
+    .error-icon, .success-icon {
+      font-size: 4rem;
+      margin-bottom: 16px;
+    }
+
+    .error-icon { color: var(--danger-color); }
+    .success-icon { color: var(--accent-green); }
+
+    .issue-card-box {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .nfc-reader-graphic {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: rgba(0, 230, 118, 0.1);
+      border: 2px solid var(--accent-green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      color: var(--accent-green);
+      margin: 24px 0;
+    }
+
+    .nfc-status-box {
+      background: var(--card-bg);
+      padding: 12px 20px;
+      border-radius: 10px;
+      margin-bottom: 24px;
+      border: 1px solid var(--card-border);
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 20px var(--accent-green-glow); }
+      50% { transform: scale(1.05); box-shadow: 0 0 40px var(--accent-green-glow); }
+    }
+  </style>
 </head>
 <body>
 
@@ -28,12 +652,12 @@
     </div>
   </div>
 
-  <!-- Главный экран терминала -->
+  <!-- Главный контейнер терминала -->
   <div class="terminal-container">
     
     <!-- Шапка терминала -->
     <header class="terminal-header">
-      <div id="brand-logo" class="brand-logo" title="Нажмите 5 раз для меню">
+      <div id="brand-logo" class="brand-logo" title="Нажмите 5 раз для меню оператора">
         <div class="logo-icon-circle">
           <span class="logo-m">M</span>
           <span class="logo-check"><i class="fa-solid fa-check"></i></span>
@@ -50,8 +674,8 @@
       </div>
     </header>
 
-    <!-- ОСНОВНОЙ ЭКРАН ОЖИДАНИЯ -->
-    <main id="screen-idle" class="screen active">
+    <!-- 1. ОСНОВНОЙ ЭКРАН ОЖИДАНИЯ -->
+    <main id="screen-idle" class="screen">
       <div class="idle-hero">
         <div class="glowing-ring">
           <i class="fa-solid fa-bolt"></i>
@@ -67,7 +691,7 @@
       </div>
     </main>
 
-    <!-- СЕКРЕТНОЕ АДМИН-МЕНЮ (После 5 кликов по логотипу) -->
+    <!-- СЕКРЕТНОЕ АДМИН-МЕНЮ (5 кликов по логотипу) -->
     <div id="admin-modal" class="modal-overlay hidden">
       <div class="modal-card">
         <div class="modal-header">
@@ -85,7 +709,7 @@
       </div>
     </div>
 
-    <!-- ЭКРАН ВВОДА СУММЫ ОПЛАТЫ -->
+    <!-- 2. ЭКРАН ВВОДА СУММЫ ОПЛАТЫ -->
     <main id="screen-amount" class="screen hidden">
       <div class="amount-container">
         <h2>Введите сумму к оплате</h2>
@@ -112,23 +736,21 @@
       </div>
     </main>
 
-    <!-- ЭКРАН ПРОЦЕССА ОПЛАТЫ -->
+    <!-- 3. ЭКРАН ПРОЦЕССА ОПЛАТЫ -->
     <main id="screen-payment" class="screen hidden">
-      <!-- Анимация прикладывания карты/телефона сверху -->
       <div class="nfc-tap-banner">
         <div class="nfc-icon-anim">
           <i class="fa-solid fa-mobile-screen"></i>
-          <i class="fa-solid fa-wave-square wave"></i>
           <i class="fa-solid fa-credit-card"></i>
         </div>
         <span>Приложите карту или телефон к NFC</span>
       </div>
 
       <div class="payment-details-box">
-        <span class="pay-label">Оплатите:</span>
-        <div class="pay-amount"><span id="target-pay-amount">0</span> EGP</div>
-        
-        <!-- Таймер 5 минут -->
+        <div>
+          <span style="color: var(--text-muted);">Оплатите:</span>
+          <div class="pay-amount"><span id="target-pay-amount">0</span> EGP</div>
+        </div>
         <div class="timer-box">
           <i class="fa-solid fa-clock"></i> Время на оплату: <span id="payment-timer">05:00</span>
         </div>
@@ -148,7 +770,6 @@
             <video id="face-video" autoplay playsinline muted></video>
             <div class="face-scanner-overlay">
               <div class="scan-line"></div>
-              <div class="face-frame"></div>
             </div>
           </div>
           <button id="trigger-smile-pay" class="action-btn glow-btn">
@@ -160,20 +781,19 @@
       <button id="cancel-payment-btn" class="action-btn cancel">Отменить транзакцию</button>
     </main>
 
-    <!-- ЭКРАН ВЫПУСКА КАРТЫ -->
+    <!-- 4. ЭКРАН ВЫПУСКА КАРТЫ -->
     <main id="screen-issue-card" class="screen hidden">
       <div class="issue-card-box">
         <h2>Выпуск новой карты Mpay</h2>
-        <p class="sub-text">Поднесите пустую NFC-метку к считывателю</p>
+        <p style="color: var(--text-muted); margin-top: 8px;">Поднесите пустую NFC-метку к считывателю</p>
 
         <div class="nfc-reader-graphic">
-          <div class="pulse-ring"></div>
           <i class="fa-solid fa-microchip"></i>
         </div>
 
         <div class="nfc-status-box">
           <span>UID Метки: </span>
-          <strong id="nfc-uid-val">Ожидание метки...</strong>
+          <strong id="nfc-uid-val" style="color: var(--accent-green); cursor: pointer;">Ожидание метки (нажми для эмуляции)...</strong>
         </div>
 
         <button id="generate-card-btn" class="action-btn primary" disabled>
@@ -183,11 +803,11 @@
       </div>
     </main>
 
-    <!-- МОДАЛЬНОЕ ОКНО С ДАННЫМИ НОВОЙ КАРТЫ -->
+    <!-- МОДАЛЬНОЕ ОКНО ДАННЫХ НОВОЙ КАРТЫ -->
     <div id="card-result-modal" class="modal-overlay hidden">
-      <div class="modal-card green-theme">
+      <div class="modal-card">
         <div class="modal-header">
-          <h2>Карта успешно выложена!</h2>
+          <h2>Карта выложена!</h2>
         </div>
         <div class="modal-body">
           <div class="virtual-card">
@@ -205,37 +825,307 @@
               </div>
             </div>
           </div>
-          <p class="modal-note">Зарегистрируйте эти данные в мобильном приложении Mpay для привязки аккаунта.</p>
           <button id="close-card-result-btn" class="action-btn primary">Готово</button>
         </div>
       </div>
     </div>
 
-    <!-- ЭКРАН ТАЙМ-АУТА -->
+    <!-- МОДАЛЬНОЕ ОКНО ТАЙМ-АУТА -->
     <div id="timeout-modal" class="modal-overlay hidden">
-      <div class="modal-card error-theme">
-        <div class="modal-body centered">
-          <div class="error-icon"><i class="fa-solid fa-hourglass-end"></i></div>
-          <h2>Time Out</h2>
-          <p>Время оплаты истекло. Транзакция сброшена.</p>
-          <button id="close-timeout-btn" class="action-btn primary">Вернуться на главный</button>
-        </div>
+      <div class="modal-card centered">
+        <div class="error-icon"><i class="fa-solid fa-hourglass-end"></i></div>
+        <h2>Time Out</h2>
+        <p style="color: var(--text-muted); margin: 12px 0 24px;">Время оплаты истекло. Транзакция сброшена.</p>
+        <button id="close-timeout-btn" class="action-btn primary">Вернуться на главный</button>
       </div>
     </div>
 
-    <!-- ЭКРАН УСПЕШНОЙ ОПЛАТЫ -->
+    <!-- МОДАЛЬНОЕ ОКНО УСПЕШНОЙ ОПЛАТЫ -->
     <div id="success-modal" class="modal-overlay hidden">
-      <div class="modal-card success-theme">
-        <div class="modal-body centered">
-          <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
-          <h2>Оплата прошла успешно!</h2>
-          <p>Спасибо за покупку!</p>
-        </div>
+      <div class="modal-card centered">
+        <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+        <h2>Оплата прошла успешно!</h2>
+        <p style="color: var(--text-muted); margin-top: 8px;">Спасибо за покупку!</p>
       </div>
     </div>
 
   </div>
 
-  <script src="app.js"></script>
+  <script>
+    // Инициализация Firebase (замени на реальные ключи при деплое)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "mpay-terminal.firebaseapp.com",
+      projectId: "mpay-terminal",
+      storageBucket: "mpay-terminal.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "1:123456789:web:abcdef"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    const state = {
+      logoTaps: 0,
+      logoTapTimer: null,
+      currentAmount: 0,
+      paymentTimerInterval: null,
+      paymentSecondsLeft: 300,
+      scannedNfcUid: null,
+      cameraStream: null
+    };
+
+    const elements = {
+      brandLogo: document.getElementById('brand-logo'),
+      adminModal: document.getElementById('admin-modal'),
+      closeAdminBtn: document.getElementById('close-admin-btn'),
+      menuPayBtn: document.getElementById('menu-pay-btn'),
+      menuIssueCardBtn: document.getElementById('menu-issue-card-btn'),
+      
+      screenIdle: document.getElementById('screen-idle'),
+      screenAmount: document.getElementById('screen-amount'),
+      screenPayment: document.getElementById('screen-payment'),
+      screenIssueCard: document.getElementById('screen-issue-card'),
+
+      amountInputVal: document.getElementById('amount-input-val'),
+      confirmAmountBtn: document.getElementById('confirm-amount-btn'),
+      cancelAmountBtn: document.getElementById('cancel-amount-btn'),
+
+      targetPayAmount: document.getElementById('target-pay-amount'),
+      paymentTimer: document.getElementById('payment-timer'),
+      qrCodeWrapper: document.getElementById('qrcode'),
+      faceVideo: document.getElementById('face-video'),
+      triggerSmilePay: document.getElementById('trigger-smile-pay'),
+      cancelPaymentBtn: document.getElementById('cancel-payment-btn'),
+
+      nfcUidVal: document.getElementById('nfc-uid-val'),
+      generateCardBtn: document.getElementById('generate-card-btn'),
+      cancelIssueBtn: document.getElementById('cancel-issue-btn'),
+      cardResultModal: document.getElementById('card-result-modal'),
+      resCardNumber: document.getElementById('res-card-number'),
+      resCardPin: document.getElementById('res-card-pin'),
+      resCardUid: document.getElementById('res-card-uid'),
+      closeCardResultBtn: document.getElementById('close-card-result-btn'),
+
+      timeoutModal: document.getElementById('timeout-modal'),
+      closeTimeoutBtn: document.getElementById('close-timeout-btn'),
+      successModal: document.getElementById('success-modal'),
+      clock: document.getElementById('clock')
+    };
+
+    function initApp() {
+      updateClock();
+      setInterval(updateClock, 1000);
+      setupEventListeners();
+      initWebNFC();
+    }
+
+    function updateClock() {
+      const now = new Date();
+      elements.clock.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+      document.getElementById(screenId).classList.remove('hidden');
+    }
+
+    function setupEventListeners() {
+      // 5 КЛИКОВ ПО ЛОГОТИПУ
+      elements.brandLogo.addEventListener('click', () => {
+        state.logoTaps++;
+        clearTimeout(state.logoTapTimer);
+        state.logoTapTimer = setTimeout(() => { state.logoTaps = 0; }, 2000);
+
+        if (state.logoTaps >= 5) {
+          state.logoTaps = 0;
+          elements.adminModal.classList.remove('hidden');
+        }
+      });
+
+      elements.closeAdminBtn.addEventListener('click', () => elements.adminModal.classList.add('hidden'));
+
+      // ВВОД СУММЫ
+      elements.menuPayBtn.addEventListener('click', () => {
+        elements.adminModal.classList.add('hidden');
+        state.currentAmount = 0;
+        elements.amountInputVal.textContent = "0";
+        showScreen('screen-amount');
+      });
+
+      document.querySelectorAll('.key-btn[data-val]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const val = e.currentTarget.getAttribute('data-val');
+          let current = elements.amountInputVal.textContent;
+
+          if (val === 'C') {
+            current = current.slice(0, -1) || '0';
+          } else {
+            current = current === '0' ? val : current + val;
+          }
+          
+          if (parseInt(current, 10) > 999999) return;
+          elements.amountInputVal.textContent = current;
+          state.currentAmount = parseInt(current, 10) || 0;
+        });
+      });
+
+      elements.cancelAmountBtn.addEventListener('click', () => showScreen('screen-idle'));
+      elements.confirmAmountBtn.addEventListener('click', () => {
+        if (state.currentAmount <= 0) return;
+        startPaymentProcess();
+      });
+
+      // ОПЛАТА И СКАНИРОВАНИЕ
+      elements.cancelPaymentBtn.addEventListener('click', () => {
+        stopPaymentProcess();
+        showScreen('screen-idle');
+      });
+
+      elements.closeTimeoutBtn.addEventListener('click', () => {
+        elements.timeoutModal.classList.add('hidden');
+        showScreen('screen-idle');
+      });
+
+      elements.triggerSmilePay.addEventListener('click', () => {
+        elements.triggerSmilePay.disabled = true;
+        elements.triggerSmilePay.textContent = "Сканирование...";
+        setTimeout(() => {
+          completeSuccessPayment();
+          elements.triggerSmilePay.disabled = false;
+          elements.triggerSmilePay.innerHTML = `<i class="fa-solid fa-face-smile"></i> Распознать лицо`;
+        }, 2000);
+      });
+
+      // ВЫПУСК КАРТЫ
+      elements.menuIssueCardBtn.addEventListener('click', () => {
+        elements.adminModal.classList.add('hidden');
+        state.scannedNfcUid = null;
+        elements.nfcUidVal.textContent = "Поднесите метку (или нажмите сюда)";
+        elements.generateCardBtn.disabled = true;
+        showScreen('screen-issue-card');
+      });
+
+      elements.nfcUidVal.addEventListener('click', () => {
+        const fakeUid = "4A:8B:" + Math.floor(Math.random()*8999+1000);
+        handleNfcScanned(fakeUid);
+      });
+
+      elements.cancelIssueBtn.addEventListener('click', () => showScreen('screen-idle'));
+
+      elements.generateCardBtn.addEventListener('click', () => {
+        const cardNumber = "4200 " + Array.from({length: 3}, () => Math.floor(1000 + Math.random() * 9000)).join(" ");
+        const cardPin = Math.floor(1000 + Math.random() * 9000).toString();
+
+        elements.resCardNumber.textContent = cardNumber;
+        elements.resCardPin.textContent = cardPin;
+        elements.resCardUid.textContent = state.scannedNfcUid || "N/A";
+
+        db.collection("cards").add({
+          cardNumber: cardNumber.replace(/\s/g, ''),
+          pin: cardPin,
+          nfcUid: state.scannedNfcUid,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          balance: 0
+        }).catch(err => console.log("Firebase not configured yet", err));
+
+        elements.cardResultModal.classList.remove('hidden');
+      });
+
+      elements.closeCardResultBtn.addEventListener('click', () => {
+        elements.cardResultModal.classList.add('hidden');
+        showScreen('screen-idle');
+      });
+    }
+
+    function startPaymentProcess() {
+      elements.targetPayAmount.textContent = state.currentAmount;
+      showScreen('screen-payment');
+      
+      elements.qrCodeWrapper.innerHTML = "";
+      new QRCode(elements.qrCodeWrapper, {
+        text: JSON.stringify({ amount: state.currentAmount, currency: "EGP", ts: Date.now() }),
+        width: 140,
+        height: 140
+      });
+
+      startCamera();
+
+      state.paymentSecondsLeft = 300;
+      updateTimerDisplay();
+      clearInterval(state.paymentTimerInterval);
+      state.paymentTimerInterval = setInterval(() => {
+        state.paymentSecondsLeft--;
+        updateTimerDisplay();
+
+        if (state.paymentSecondsLeft <= 0) {
+          stopPaymentProcess();
+          elements.timeoutModal.classList.remove('hidden');
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(state.paymentSecondsLeft / 60).toString().padStart(2, '0');
+      const secs = (state.paymentSecondsLeft % 60).toString().padStart(2, '0');
+      elements.paymentTimer.textContent = `${mins}:${secs}`;
+    }
+
+    function stopPaymentProcess() {
+      clearInterval(state.paymentTimerInterval);
+      stopCamera();
+    }
+
+    async function startCamera() {
+      try {
+        state.cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+        elements.faceVideo.srcObject = state.cameraStream;
+      } catch (err) {
+        console.warn("Камера недоступна", err);
+      }
+    }
+
+    function stopCamera() {
+      if (state.cameraStream) {
+        state.cameraStream.getTracks().forEach(track => track.stop());
+        state.cameraStream = null;
+      }
+    }
+
+    function completeSuccessPayment() {
+      stopPaymentProcess();
+      elements.successModal.classList.remove('hidden');
+      setTimeout(() => {
+        elements.successModal.classList.add('hidden');
+        showScreen('screen-idle');
+      }, 3000);
+    }
+
+    async function initWebNFC() {
+      if ('NDEFReader' in window) {
+        try {
+          const ndef = new NDEFReader();
+          await ndef.scan();
+          ndef.addEventListener("reading", ({ serialNumber }) => handleNfcScanned(serialNumber));
+        } catch (e) {
+          console.log("Web NFC недоступен без HTTPS/поддержки");
+        }
+      }
+    }
+
+    function handleNfcScanned(uid) {
+      if (!elements.screenIssueCard.classList.contains('hidden')) {
+        state.scannedNfcUid = uid;
+        elements.nfcUidVal.textContent = uid;
+        elements.generateCardBtn.disabled = false;
+      } else if (!elements.screenPayment.classList.contains('hidden')) {
+        completeSuccessPayment();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
 </body>
 </html>
