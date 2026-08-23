@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mpay Admin Panel</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+  <style>
+    :root {
+      --bg: #09060e;
+      --card-bg: rgba(28, 18, 38, 0.95);
+      --border: rgba(255, 255, 255, 0.12);
+      --accent: #ffd600;
+      --danger: #ff3d00;
+      --text: #ffffff;
+      --muted: #8E9BAE;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100dvh; display: flex; flex-direction: column; }
+    .hidden { display: none !important; }
+    .header { height: 56px; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: #130c1d; }
+    .screen { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+    .btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-size: 0.9rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-danger { background: rgba(255, 61, 0, 0.2); color: var(--danger); border: 1px solid rgba(255, 61, 0, 0.4); }
+    .btn-secondary { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid var(--border); }
+    .input { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; color: #fff; outline: none; margin-bottom: 8px; }
+    .box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+  </style>
+</head>
+<body>
+
+  <!-- АВТОРИЗАЦИЯ АДМИНА (КЛЮЧ ПО УМОЛЧАНИЮ: 111) -->
+  <div id="auth-modal" class="modal">
+    <div style="background: #140d1f; border: 1px solid var(--border); border-radius: 16px; padding: 20px; width: 100%; max-width: 320px; text-align: center;">
+      <i class="fa-solid fa-shield-halved" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 10px;"></i>
+      <h3>Доступ к системам</h3>
+      <input type="password" id="auth-key" class="input" style="text-align: center; margin-top: 12px;" placeholder="Введите секретный ключ" />
+      <button onclick="loginAdmin()" class="btn btn-primary">Войти</button>
+    </div>
+  </div>
+
+  <header class="header">
+    <span style="font-weight: 800; color: var(--accent);">Mpay System Admin</span>
+  </header>
+
+  <main id="admin-dash" class="screen hidden">
+    <!-- ТЕРМИНАЛЫ -->
+    <div class="box">
+      <h3><i class="fa-solid fa-calculator"></i> Терминалы и Точки</h3>
+      <div id="term-list" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;"></div>
+    </div>
+
+    <!-- КАРТЫ -->
+    <div class="box">
+      <h3><i class="fa-solid fa-credit-card"></i> Управление Картами</h3>
+      <button onclick="createAdminCard()" class="btn btn-primary" style="margin: 10px 0;"><i class="fa-solid fa-crown"></i> Создать Бесконечную Карту</button>
+      
+      <input type="text" id="target-card" class="input" placeholder="Номер карты" />
+      <input type="number" id="topup-amt" class="input" placeholder="Сумма пополнения" />
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <button onclick="topupCard()" class="btn btn-secondary">Пополнить</button>
+        <button onclick="deleteCard()" class="btn btn-danger">Удалить</button>
+      </div>
+      <button onclick="convertCard()" class="btn btn-secondary" style="margin-top: 8px;">Конвертировать в обычную</button>
+    </div>
+
+    <!-- НАСТРОЙКИ СЕКРЕТНОГО КЛЮЧА -->
+    <div class="box">
+      <h3><i class="fa-solid fa-key"></i> Секретный Ключ</h3>
+      <input type="password" id="new-key-input" class="input" style="margin-top: 8px;" placeholder="Новый ключ админки" />
+      <button onclick="changeAdminKey()" class="btn btn-primary">Изменить Ключ</button>
+    </div>
+  </main>
+
+  <script>
+    const firebaseConfig = { databaseURL: "https://mpay-4f703-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    async function loginAdmin() {
+      const enteredKey = document.getElementById('auth-key').value.trim();
+      const snap = await db.ref('settings/adminKey').once('value');
+      const validKey = snap.exists() ? snap.val() : "111";
+
+      if (enteredKey === validKey) {
+        document.getElementById('auth-modal').classList.add('hidden');
+        document.getElementById('admin-dash').classList.remove('hidden');
+        loadTerminals();
+      } else alert("Неверный ключ!");
+    }
+
+    function loadTerminals() {
+      db.ref('terminals').on('value', snap => {
+        const list = document.getElementById('term-list');
+        list.innerHTML = "";
+        snap.forEach(child => {
+          const t = child.val();
+          const isBlocked = t.status === 'blocked';
+          list.innerHTML += `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px; border-radius:8px;">
+              <div>
+                <strong>${t.terminalId}</strong>
+                <span style="font-size:0.75rem; color:${isBlocked ? 'var(--danger)':'#00e676'};">[${t.status}]</span>
+              </div>
+              <button onclick="toggleTerm('${t.terminalId}', '${t.status}')" class="btn ${isBlocked ? 'btn-primary':'btn-danger'}" style="width:auto; padding:6px 10px; font-size:0.75rem;">
+                ${isBlocked ? 'Разблокировать' : 'Заблокировать'}
+              </button>
+            </div>
+          `;
+        });
+      });
+    }
+
+    async function toggleTerm(id, curStatus) {
+      await db.ref(`terminals/${id}`).update({ status: curStatus === 'blocked' ? 'active' : 'blocked' });
+    }
+
+    async function createAdminCard() {
+      const num = "9999" + Math.floor(100000000000 + Math.random() * 900000000000);
+      await db.ref(`cards/${num}`).set({
+        cardNumber: num, pin: "0000", balance: 9999999, isAdminCard: true, isFrozen: false, createdAt: Date.now()
+      });
+      alert(`Админ-карта создана!\nНомер: ${num}\nPIN: 0000`);
+    }
+
+    async function topupCard() {
+      const num = document.getElementById('target-card').value.trim();
+      const amt = parseFloat(document.getElementById('topup-amt').value);
+      const snap = await db.ref(`cards/${num}`).once('value');
+      if (snap.exists()) {
+        const cur = snap.val().balance || 0;
+        await db.ref(`cards/${num}`).update({ balance: cur + amt });
+        alert("Баланс обновлен!");
+      } else alert("Карта не найдена!");
+    }
+
+    async function deleteCard() {
+      const num = document.getElementById('target-card').value.trim();
+      await db.ref(`cards/${num}`).remove();
+      alert("Карта удалена!");
+    }
+
+    async function convertCard() {
+      const num = document.getElementById('target-card').value.trim();
+      await db.ref(`cards/${num}`).update({ isAdminCard: false, balance: 0 });
+      alert("Карта конвертирована в обычную!");
+    }
+
+    async function changeAdminKey() {
+      const k = document.getElementById('new-key-input').value.trim();
+      if (k) {
+        await db.ref('settings/adminKey').set(k);
+        alert("Секретный ключ изменен!");
+      }
+    }
+  </script>
+</body>
+</html>
