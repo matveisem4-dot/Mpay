@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mpay Terminal</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+  <style>
+    :root {
+      --bg: #070a0f;
+      --card-bg: rgba(18, 26, 38, 0.95);
+      --border: rgba(255, 255, 255, 0.1);
+      --accent: #00e676;
+      --accent-glow: rgba(0, 230, 118, 0.3);
+      --text: #ffffff;
+      --muted: #8E9BAE;
+      --danger: #ff5252;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100dvh; display: flex; flex-direction: column; }
+    .hidden { display: none !important; }
+    .header { height: 56px; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: #0c121d; }
+    .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+    .badge-active { background: rgba(0, 230, 118, 0.2); color: var(--accent); }
+    .badge-blocked { background: rgba(255, 82, 82, 0.2); color: var(--danger); }
+    .screen { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+    .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-primary { background: var(--accent); color: #000; box-shadow: 0 0 15px var(--accent-glow); }
+    .btn-secondary { background: rgba(255, 255, 255, 0.08); color: #fff; border: 1px solid var(--border); }
+    .btn-danger { background: rgba(255, 82, 82, 0.15); color: var(--danger); border: 1px solid rgba(255, 82, 82, 0.3); }
+    .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 320px; margin: auto; }
+    .key-btn { height: 54px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; color: #fff; font-size: 1.4rem; font-weight: 700; }
+    .key-btn:active { background: rgba(255,255,255,0.2); }
+    #map { width: 100%; height: 220px; border-radius: 12px; border: 1px solid var(--border); }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+    .modal-box { background: #121926; border: 1px solid var(--border); border-radius: 16px; padding: 20px; width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 12px; }
+    .pin-input { width: 100%; padding: 12px; text-align: center; font-size: 1.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 10px; color: #fff; outline: none; }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <span style="font-weight: 800; color: var(--accent);">Mpay Terminal</span>
+    <span id="term-status" class="badge badge-active">ID: ...</span>
+  </header>
+
+  <!-- ГЛАВНЫЙ ЭКРАН -->
+  <main id="sc-idle" class="screen" style="text-align: center; justify-content: center;">
+    <div style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--accent); margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--accent); box-shadow: 0 0 20px var(--accent-glow);">
+      <i class="fa-solid fa-wifi"></i>
+    </div>
+    <h2 style="margin-top: 10px;">Терминал готов</h2>
+    <p style="color: var(--muted); font-size: 0.85rem;">Активируйте NFC или введите сумму оплаты</p>
+    
+    <button id="nfc-btn" class="btn btn-primary" style="margin-top: 10px;"><i class="fa-solid fa-hand-pointer"></i> Включить Web NFC</button>
+    <button onclick="goto('sc-amount')" class="btn btn-secondary"><i class="fa-solid fa-calculator"></i> Ввести сумму</button>
+    <button onclick="goto('sc-map')" class="btn btn-secondary"><i class="fa-solid fa-store"></i> Точка магазина</button>
+  </main>
+
+  <!-- ВВОД СУММЫ -->
+  <main id="sc-amount" class="screen hidden" style="text-align: center;">
+    <span style="color: var(--muted);">Сумма к оплате</span>
+    <div style="font-size: 2.8rem; font-weight: 800; color: var(--accent); margin: 10px 0;">
+      <span id="amount-val">0</span> <small style="font-size: 1rem;">EGP</small>
+    </div>
+    <div class="keypad">
+      <button class="key-btn" onclick="press('1')">1</button>
+      <button class="key-btn" onclick="press('2')">2</button>
+      <button class="key-btn" onclick="press('3')">3</button>
+      <button class="key-btn" onclick="press('4')">4</button>
+      <button class="key-btn" onclick="press('5')">5</button>
+      <button class="key-btn" onclick="press('6')">6</button>
+      <button class="key-btn" onclick="press('7')">7</button>
+      <button class="key-btn" onclick="press('8')">8</button>
+      <button class="key-btn" onclick="press('9')">9</button>
+      <button class="key-btn" style="color: var(--danger)" onclick="press('C')"><i class="fa-solid fa-delete-left"></i></button>
+      <button class="key-btn" onclick="press('0')">0</button>
+      <button class="key-btn" style="background: var(--accent); color:#000" onclick="startPay()"><i class="fa-solid fa-arrow-right"></i></button>
+    </div>
+    <button onclick="goto('sc-idle')" class="btn btn-danger" style="margin-top: 10px;">Отмена</button>
+  </main>
+
+  <!-- ОПЛАТА -->
+  <main id="sc-pay" class="screen hidden" style="text-align: center; justify-content: space-around;">
+    <div>
+      <span style="color: var(--muted);">Оплата на сумму</span>
+      <div style="font-size: 2.2rem; font-weight: 800; color: var(--accent);"><span id="pay-target">0</span> EGP</div>
+    </div>
+
+    <div style="background: #fff; padding: 12px; border-radius: 12px; display: inline-block; margin: 0 auto;">
+      <div id="qrcode"></div>
+    </div>
+
+    <p style="color: var(--muted); font-size: 0.85rem;"><i class="fa-solid fa-wifi"></i> Приложите NFC карту к телефону</p>
+    <button onclick="goto('sc-idle')" class="btn btn-danger">Отмена</button>
+  </main>
+
+  <!-- КАРТА -->
+  <main id="sc-map" class="screen hidden">
+    <h3>Локация магазина</h3>
+    <div id="map"></div>
+    <button onclick="locate()" class="btn btn-secondary"><i class="fa-solid fa-location-crosshairs"></i> Определить GPS</button>
+    <button onclick="saveStoreLoc()" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Сохранить в Firebase</button>
+    <button onclick="goto('sc-idle')" class="btn btn-danger">Назад</button>
+  </main>
+
+  <!-- ВВОД PIN (> 10 EGP) -->
+  <div id="pin-modal" class="modal hidden">
+    <div class="modal-box">
+      <h3 style="text-align: center;">Покупка > 10 EGP</h3>
+      <p style="text-align: center; color: var(--muted); font-size: 0.85rem;">Введите PIN-код для подтверждения</p>
+      <input type="password" id="pin-field" class="pin-input" maxlength="4" placeholder="****" />
+      <button onclick="verifyPinAndPay()" class="btn btn-primary">Подтвердить</button>
+      <button onclick="closePinModal()" class="btn btn-danger">Отмена</button>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = { databaseURL: "https://mpay-4f703-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let TERM_ID = localStorage.getItem('mpay_terminal_id');
+    if (!TERM_ID) {
+      TERM_ID = "TERM_" + Math.floor(1000 + Math.random() * 9000);
+      localStorage.setItem('mpay_terminal_id', TERM_ID);
+    }
+    
+    let curAmount = 0, pendingCard = null, mapObj = null, markerObj = null;
+
+    // Синхронизация статуса терминала
+    db.ref(`terminals/${TERM_ID}`).on('value', snap => {
+      const data = snap.val();
+      const stEl = document.getElementById('term-status');
+      if (data && data.status === 'blocked') {
+        stEl.textContent = `${TERM_ID} [ЗАБЛОКИРОВАН]`;
+        stEl.className = "badge badge-blocked";
+      } else {
+        stEl.textContent = `${TERM_ID} [АКТИВЕН]`;
+        stEl.className = "badge badge-active";
+        if (!data) db.ref(`terminals/${TERM_ID}`).set({ terminalId: TERM_ID, status: 'active', updatedAt: Date.now() });
+      }
+    });
+
+    function goto(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+      document.getElementById(id).classList.remove('hidden');
+      if (id === 'sc-map') setTimeout(initMap, 200);
+    }
+
+    function press(v) {
+      let el = document.getElementById('amount-val');
+      if (v === 'C') el.textContent = el.textContent.slice(0, -1) || '0';
+      else el.textContent = el.textContent === '0' ? v : el.textContent + v;
+      curAmount = parseInt(el.textContent, 10) || 0;
+    }
+
+    async function startPay() {
+      if (curAmount <= 0) return alert("Введите сумму!");
+      const snap = await db.ref(`terminals/${TERM_ID}`).once('value');
+      if (snap.val() && snap.val().status === 'blocked') {
+        return alert("ОШИБКА: Терминал заблокирован администратором!");
+      }
+      document.getElementById('pay-target').textContent = curAmount;
+      document.getElementById('qrcode').innerHTML = "";
+      new QRCode(document.getElementById('qrcode'), { text: `mpay://pay?termId=${TERM_ID}&amt=${curAmount}`, width: 110, height: 110 });
+      goto('sc-pay');
+    }
+
+    document.getElementById('nfc-btn').addEventListener('click', async () => {
+      if ('NDEFReader' in window) {
+        try {
+          const ndef = new NDEFReader();
+          await ndef.scan();
+          alert("NFC активен!");
+          ndef.addEventListener("reading", ({ serialNumber }) => handleNfc(serialNumber));
+        } catch (e) { alert("Ошибка NFC: " + e.message); }
+      } else alert("Web NFC не поддерживается браузером!");
+    });
+
+    async function handleNfc(uid) {
+      if (document.getElementById('sc-pay').classList.contains('hidden')) return;
+      const snap = await db.ref('cards').orderByChild('nfcUid').equalTo(uid).once('value');
+      if (!snap.exists()) return alert("ОШИБКА: Незарегистрированная NFC метка!");
+      
+      const card = Object.values(snap.val())[0];
+      if (card.isFrozen) return alert("ОШИБКА: Карта заморожена!");
+
+      pendingCard = card;
+      if (curAmount > 10) {
+        document.getElementById('pin-modal').classList.remove('hidden');
+      } else {
+        commitDebit(card);
+      }
+    }
+
+    function verifyPinAndPay() {
+      const pin = document.getElementById('pin-field').value;
+      if (pin === pendingCard.pin) {
+        closePinModal();
+        commitDebit(pendingCard);
+      } else alert("Неверный PIN!");
+    }
+
+    function closePinModal() {
+      document.getElementById('pin-modal').classList.add('hidden');
+      document.getElementById('pin-field').value = "";
+    }
+
+    async function commitDebit(card) {
+      if (!card.isAdminCard && card.balance < curAmount) return alert("Недостаточно средств!");
+      const newBal = card.isAdminCard ? card.balance : (card.balance - curAmount);
+      
+      await db.ref(`cards/${card.cardNumber}`).update({ balance: newBal });
+      await db.ref(`transactions/${Date.now()}`).set({ termId: TERM_ID, card: card.cardNumber, amt: curAmount, ts: Date.now() });
+      
+      alert("Оплата прошла успешно!");
+      curAmount = 0;
+      document.getElementById('amount-val').textContent = "0";
+      goto('sc-idle');
+    }
+
+    function initMap() {
+      if (!mapObj) {
+        mapObj = L.map('map').setView([30.0444, 31.2357], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapObj);
+        markerObj = L.marker([30.0444, 31.2357], { draggable: true }).addTo(mapObj);
+      }
+    }
+    function locate() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(p => {
+          const pos = [p.coords.latitude, p.coords.longitude];
+          mapObj.setView(pos, 15);
+          markerObj.setLatLng(pos);
+        });
+      }
+    }
+    function saveStoreLoc() {
+      const pos = markerObj.getLatLng();
+      db.ref(`terminals/${TERM_ID}`).update({ lat: pos.lat, lng: pos.lng, updatedAt: Date.now() });
+      alert("Точка синхронизирована!");
+    }
+  </script>
+</body>
+</html>
