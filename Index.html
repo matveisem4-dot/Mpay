@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Mpay Terminal</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Подключаем иконки FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Подключаем библиотеку для генерации QR-кодов -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Firebase SDK (готов к подключению базы) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+  <!-- Вводный заставочный экран (Splash Screen) -->
+  <div id="splash-screen" class="splash-screen">
+    <div class="splash-content">
+      <div class="logo-box">
+        <span class="logo-text-full">Madina Pay</span>
+        <div class="check-badge">
+          <i class="fa-solid fa-check"></i>
+        </div>
+      </div>
+      <p class="splash-subtitle">Инновационные платежи</p>
+    </div>
+  </div>
+
+  <!-- Главный экран терминала -->
+  <div class="terminal-container">
+    
+    <!-- Шапка терминала -->
+    <header class="terminal-header">
+      <div id="brand-logo" class="brand-logo" title="Нажмите 5 раз для меню">
+        <div class="logo-icon-circle">
+          <span class="logo-m">M</span>
+          <span class="logo-check"><i class="fa-solid fa-check"></i></span>
+        </div>
+        <span class="brand-name">pay</span>
+      </div>
+
+      <div class="header-status">
+        <div class="status-indicator">
+          <span class="dot online"></span>
+          <span>Онлайн</span>
+        </div>
+        <div id="clock" class="clock-display">12:00</div>
+      </div>
+    </header>
+
+    <!-- ОСНОВНОЙ ЭКРАН ОЖИДАНИЯ -->
+    <main id="screen-idle" class="screen active">
+      <div class="idle-hero">
+        <div class="glowing-ring">
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+        <h1 class="main-title">Платите, как вам удобно</h1>
+        <p class="main-subtitle">NFC, QR-код или Оплата по улыбке</p>
+      </div>
+
+      <div class="payment-methods-badges">
+        <div class="badge-item"><i class="fa-solid fa-wifi"></i> Web NFC</div>
+        <div class="badge-item"><i class="fa-solid fa-qrcode"></i> QR Код</div>
+        <div class="badge-item"><i class="fa-solid fa-face-smile"></i> Smile Pay</div>
+      </div>
+    </main>
+
+    <!-- СЕКРЕТНОЕ АДМИН-МЕНЮ (После 5 кликов по логотипу) -->
+    <div id="admin-modal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Панель оператора</h2>
+          <button id="close-admin-btn" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+          <button id="menu-pay-btn" class="action-btn primary">
+            <i class="fa-solid fa-hand-holding-dollar"></i> Вызвать оплату
+          </button>
+          <button id="menu-issue-card-btn" class="action-btn secondary">
+            <i class="fa-solid fa-id-card"></i> Выпустить карту (NFC)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ЭКРАН ВВОДА СУММЫ ОПЛАТЫ -->
+    <main id="screen-amount" class="screen hidden">
+      <div class="amount-container">
+        <h2>Введите сумму к оплате</h2>
+        <div class="amount-display">
+          <span id="amount-input-val">0</span>
+          <span class="currency">EGP</span>
+        </div>
+
+        <div class="keypad">
+          <button class="key-btn" data-val="1">1</button>
+          <button class="key-btn" data-val="2">2</button>
+          <button class="key-btn" data-val="3">3</button>
+          <button class="key-btn" data-val="4">4</button>
+          <button class="key-btn" data-val="5">5</button>
+          <button class="key-btn" data-val="6">6</button>
+          <button class="key-btn" data-val="7">7</button>
+          <button class="key-btn" data-val="8">8</button>
+          <button class="key-btn" data-val="9">9</button>
+          <button class="key-btn clear-btn" data-val="C"><i class="fa-solid fa-delete-left"></i></button>
+          <button class="key-btn" data-val="0">0</button>
+          <button id="confirm-amount-btn" class="key-btn confirm-btn"><i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+        <button id="cancel-amount-btn" class="text-link-btn">Отмена</button>
+      </div>
+    </main>
+
+    <!-- ЭКРАН ПРОЦЕССА ОПЛАТЫ -->
+    <main id="screen-payment" class="screen hidden">
+      <!-- Анимация прикладывания карты/телефона сверху -->
+      <div class="nfc-tap-banner">
+        <div class="nfc-icon-anim">
+          <i class="fa-solid fa-mobile-screen"></i>
+          <i class="fa-solid fa-wave-square wave"></i>
+          <i class="fa-solid fa-credit-card"></i>
+        </div>
+        <span>Приложите карту или телефон к NFC</span>
+      </div>
+
+      <div class="payment-details-box">
+        <span class="pay-label">Оплатите:</span>
+        <div class="pay-amount"><span id="target-pay-amount">0</span> EGP</div>
+        
+        <!-- Таймер 5 минут -->
+        <div class="timer-box">
+          <i class="fa-solid fa-clock"></i> Время на оплату: <span id="payment-timer">05:00</span>
+        </div>
+      </div>
+
+      <div class="payment-grid">
+        <!-- Блок QR-Кода -->
+        <div class="pay-card qr-card">
+          <h3>Сканируйте в Mpay App</h3>
+          <div id="qrcode" class="qrcode-wrapper"></div>
+        </div>
+
+        <!-- Блок Оплаты по Улыбке -->
+        <div class="pay-card face-card">
+          <h3>Оплата по улыбке</h3>
+          <div class="camera-wrapper">
+            <video id="face-video" autoplay playsinline muted></video>
+            <div class="face-scanner-overlay">
+              <div class="scan-line"></div>
+              <div class="face-frame"></div>
+            </div>
+          </div>
+          <button id="trigger-smile-pay" class="action-btn glow-btn">
+            <i class="fa-solid fa-face-smile"></i> Распознать лицо
+          </button>
+        </div>
+      </div>
+
+      <button id="cancel-payment-btn" class="action-btn cancel">Отменить транзакцию</button>
+    </main>
+
+    <!-- ЭКРАН ВЫПУСКА КАРТЫ -->
+    <main id="screen-issue-card" class="screen hidden">
+      <div class="issue-card-box">
+        <h2>Выпуск новой карты Mpay</h2>
+        <p class="sub-text">Поднесите пустую NFC-метку к считывателю</p>
+
+        <div class="nfc-reader-graphic">
+          <div class="pulse-ring"></div>
+          <i class="fa-solid fa-microchip"></i>
+        </div>
+
+        <div class="nfc-status-box">
+          <span>UID Метки: </span>
+          <strong id="nfc-uid-val">Ожидание метки...</strong>
+        </div>
+
+        <button id="generate-card-btn" class="action-btn primary" disabled>
+          <i class="fa-solid fa-plus-circle"></i> Сгенерировать карту
+        </button>
+        <button id="cancel-issue-btn" class="text-link-btn">Отмена</button>
+      </div>
+    </main>
+
+    <!-- МОДАЛЬНОЕ ОКНО С ДАННЫМИ НОВОЙ КАРТЫ -->
+    <div id="card-result-modal" class="modal-overlay hidden">
+      <div class="modal-card green-theme">
+        <div class="modal-header">
+          <h2>Карта успешно выложена!</h2>
+        </div>
+        <div class="modal-body">
+          <div class="virtual-card">
+            <div class="vcard-chip"><i class="fa-solid fa-sim-card"></i></div>
+            <div class="vcard-logo">Mpay</div>
+            <div class="vcard-number" id="res-card-number">0000 0000 0000 0000</div>
+            <div class="vcard-footer">
+              <div>
+                <span class="vcard-lbl">PIN-код</span>
+                <span class="vcard-val" id="res-card-pin">0000</span>
+              </div>
+              <div>
+                <span class="vcard-lbl">UID Метки</span>
+                <span class="vcard-val" id="res-card-uid">---</span>
+              </div>
+            </div>
+          </div>
+          <p class="modal-note">Зарегистрируйте эти данные в мобильном приложении Mpay для привязки аккаунта.</p>
+          <button id="close-card-result-btn" class="action-btn primary">Готово</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ЭКРАН ТАЙМ-АУТА -->
+    <div id="timeout-modal" class="modal-overlay hidden">
+      <div class="modal-card error-theme">
+        <div class="modal-body centered">
+          <div class="error-icon"><i class="fa-solid fa-hourglass-end"></i></div>
+          <h2>Time Out</h2>
+          <p>Время оплаты истекло. Транзакция сброшена.</p>
+          <button id="close-timeout-btn" class="action-btn primary">Вернуться на главный</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ЭКРАН УСПЕШНОЙ ОПЛАТЫ -->
+    <div id="success-modal" class="modal-overlay hidden">
+      <div class="modal-card success-theme">
+        <div class="modal-body centered">
+          <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+          <h2>Оплата прошла успешно!</h2>
+          <p>Спасибо за покупку!</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
