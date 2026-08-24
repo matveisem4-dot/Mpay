@@ -22,28 +22,43 @@
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
     body { background: var(--bg); color: var(--text); min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-image: radial-gradient(circle at 50% 10%, rgba(168, 85, 247, 0.15), transparent 60%); }
 
-    /* PURPLE SPLASH ANIMATION */
     .splash-screen {
-      position: fixed;
-      inset: 0;
-      background: #0c0518;
-      z-index: 99999;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      animation: splashFadeOut 0.5s ease forwards 3.5s;
+      position: fixed; inset: 0; background: #0c0518; z-index: 99999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      animation: splashFadeOut 0.4s ease-out forwards 3.2s;
     }
-    .splash-content { display: flex; align-items: center; justify-content: center; gap: 6px; }
-    .splash-svg { width: 110px; height: 110px; overflow: visible; }
-    .splash-check { stroke-dasharray: 100; stroke-dashoffset: 100; animation: drawCheck 0.6s ease forwards 0.3s; }
-    .splash-circle { stroke-dasharray: 280; stroke-dashoffset: 280; animation: drawCircle 1s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.8s; }
-    .splash-text { font-size: 3rem; font-weight: 900; color: #ffffff; white-space: nowrap; overflow: hidden; max-width: 200px; display: flex; align-items: center; animation: erasePayText 0.8s cubic-bezier(0.77, 0, 0.175, 1) forwards 1.2s; }
-    .splash-sub { font-size: 0.85rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 3px; margin-top: 12px; opacity: 0.8; animation: erasePayText 0.8s cubic-bezier(0.77, 0, 0.175, 1) forwards 1.2s; }
+    .splash-brand { display: flex; align-items: center; justify-content: center; position: relative; }
+    .splash-svg { width: 110px; height: 110px; flex-shrink: 0; overflow: visible; }
+    
+    .splash-circle {
+      fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round;
+      pathLength: 1; stroke-dasharray: 1; stroke-dashoffset: 1;
+      animation: drawCircle 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.8s;
+    }
+    .splash-check {
+      fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round;
+      pathLength: 1; stroke-dasharray: 1; stroke-dashoffset: 1;
+      animation: drawCheck 0.5s ease forwards 0.3s;
+    }
+    .splash-pay {
+      font-size: 3rem; font-weight: 900; color: #ffffff; white-space: nowrap; overflow: hidden;
+      display: inline-block; animation: fadePay 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.2s;
+    }
+    .splash-sub {
+      font-size: 0.85rem; font-weight: 700; color: var(--accent); text-transform: uppercase;
+      letter-spacing: 3px; margin-top: 12px; animation: fadeSub 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.2s;
+    }
 
-    @keyframes drawCheck { 100% { stroke-dashoffset: 0; } }
-    @keyframes erasePayText { 0% { max-width: 200px; opacity: 1; } 100% { max-width: 0px; opacity: 0; margin: 0; padding: 0; } }
-    @keyframes drawCircle { 100% { stroke-dashoffset: 0; } }
+    @keyframes drawCheck { to { stroke-dashoffset: 0; } }
+    @keyframes drawCircle { to { stroke-dashoffset: 0; } }
+    @keyframes fadePay {
+      0% { opacity: 1; max-width: 120px; transform: translateX(0); }
+      100% { opacity: 0; max-width: 0px; transform: translateX(-10px); margin: 0; visibility: hidden; }
+    }
+    @keyframes fadeSub {
+      0% { opacity: 0.8; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(5px); visibility: hidden; }
+    }
     @keyframes splashFadeOut { to { opacity: 0; visibility: hidden; pointer-events: none; } }
 
     .app-card { width: 100%; max-width: 440px; min-height: 720px; background: var(--panel); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 32px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8); display: flex; flex-direction: column; overflow: hidden; position: relative; }
@@ -60,15 +75,15 @@
 </head>
 <body>
 
-  <!-- PURPLE SPLASH OVERLAY -->
+  <!-- SPLASH OVERLAY -->
   <div id="splash" class="splash-screen">
-    <div class="splash-content">
+    <div class="splash-brand">
       <svg class="splash-svg" viewBox="0 0 100 100">
-        <circle class="splash-circle" cx="50" cy="50" r="42" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" />
-        <text x="20" y="66" font-family="'Segoe UI', sans-serif" font-size="46" font-weight="900" fill="var(--accent)">M</text>
-        <path class="splash-check" d="M 52 50 L 64 63 L 84 37" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+        <circle class="splash-circle" cx="50" cy="50" r="42" />
+        <text x="22" y="66" font-family="'Segoe UI', sans-serif" font-size="46" font-weight="900" fill="var(--accent)">M</text>
+        <path class="splash-check" d="M 50 52 L 62 64 L 82 38" />
       </svg>
-      <div class="splash-text">Pay</div>
+      <div class="splash-pay">Pay</div>
     </div>
     <div class="splash-sub">Admin Panel</div>
   </div>
@@ -92,7 +107,6 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Live Terminals Monitor
     db.ref('terminals').on('value', snap => {
       const el = document.getElementById('terminals-list');
       el.innerHTML = "";
@@ -115,7 +129,6 @@
       });
     });
 
-    // Live Cards Monitor
     db.ref('cards').on('value', snap => {
       const el = document.getElementById('cards-list');
       el.innerHTML = "";
