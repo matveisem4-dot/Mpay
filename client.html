@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Mpay Client</title>
+  <title>Mpay Pay Wallet</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -11,68 +11,94 @@
 
   <style>
     :root {
-      --bg: #06090e;
-      --card-bg: rgba(18, 24, 38, 0.95);
-      --border: rgba(255, 255, 255, 0.12);
-      --accent-blue: #29b6f6;
-      --accent-green: #00e676;
+      --bg: #050811;
+      --panel: rgba(13, 20, 36, 0.9);
+      --border: rgba(0, 240, 255, 0.2);
+      --cyan: #00f0ff;
+      --cyan-glow: rgba(0, 240, 255, 0.35);
       --text: #ffffff;
-      --muted: #8E9BAE;
-      --danger: #ff5252;
+      --muted: #64748b;
+      --danger: #ff3366;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
-    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100dvh; display: flex; flex-direction: column; }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100dvh; display: flex; justify-content: center; align-items: center; background-image: radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.1), transparent 70%); }
+
+    .app-card { width: 100%; max-width: 400px; min-height: 680px; background: var(--panel); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 28px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7); display: flex; flex-direction: column; overflow: hidden; }
+    .header { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .brand { font-weight: 800; font-size: 1.1rem; color: var(--cyan); letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+
+    .screen { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 14px; justify-content: center; }
     .hidden { display: none !important; }
-    .header { height: 56px; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: #0c121d; }
-    .screen { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-    .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn-primary { background: var(--accent-blue); color: #000; box-shadow: 0 0 15px rgba(41, 182, 246, 0.3); }
-    .btn-secondary { background: rgba(255, 255, 255, 0.08); color: #fff; border: 1px solid var(--border); }
-    .btn-danger { background: rgba(255, 82, 82, 0.15); color: var(--danger); border: 1px solid rgba(255, 82, 82, 0.3); }
-    .input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 10px; color: #fff; outline: none; }
-    .card-box { background: linear-gradient(135deg, #121926 0%, #1a2333 100%); border: 1px solid var(--border); border-radius: 16px; padding: 20px; text-align: center; }
-    .scanner-v { width: 100%; height: 220px; object-fit: cover; border-radius: 12px; background: #000; }
+
+    .input-group { width: 100%; margin-bottom: 5px; }
+    .input-group label { font-size: 0.75rem; color: var(--muted); margin-bottom: 5px; display: block; text-transform: uppercase; }
+    .input { width: 100%; padding: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; color: #fff; font-size: 1rem; outline: none; transition: 0.2s; }
+    .input:focus { border-color: var(--cyan); box-shadow: 0 0 10px var(--cyan-glow); }
+
+    .btn { width: 100%; padding: 15px; border-radius: 14px; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; }
+    .btn-cyan { background: linear-gradient(135deg, #00f0ff, #0072ff); color: #000; box-shadow: 0 4px 20px var(--cyan-glow); }
+    .btn-glass { background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+    .btn-danger { background: rgba(255, 51, 102, 0.15); color: var(--danger); border: 1px solid rgba(255, 51, 102, 0.3); }
+
+    .credit-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 22px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .credit-card::before { content: ''; position: absolute; top: -50%; right: -50%; width: 200px; height: 200px; background: radial-gradient(circle, rgba(0,240,255,0.15), transparent); transform: rotate(45deg); }
+    .card-bal { font-size: 2.2rem; font-weight: 800; color: var(--cyan); margin: 10px 0 15px; }
+
+    .scanner-v { width: 100%; height: 260px; object-fit: cover; border-radius: 16px; border: 1px solid var(--cyan); }
   </style>
 </head>
 <body>
 
-  <header class="header">
-    <span style="font-weight: 800; color: var(--accent-blue);">Mpay Wallet</span>
-    <span id="card-status-tag" class="badge">Авторизация</span>
-  </header>
-
-  <!-- ВХОД -->
-  <main id="sc-login" class="screen" style="justify-content: center;">
-    <h2 style="text-align: center; margin-bottom: 10px;">Вход в кошелек</h2>
-    <input type="text" id="card-input" class="input" placeholder="Номер карты" />
-    <input type="password" id="pin-input" class="input" maxlength="4" placeholder="PIN-код" />
-    <button onclick="login()" class="btn btn-primary">Войти</button>
-  </main>
-
-  <!-- КАБИНЕТ -->
-  <main id="sc-dash" class="screen hidden">
-    <div class="card-box">
-      <span style="color: var(--muted); font-size: 0.85rem;">Доступный баланс</span>
-      <div style="font-size: 2.4rem; font-weight: 800; color: var(--accent-green); margin: 8px 0;">
-        <span id="bal-val">0</span> <small style="font-size: 1rem;">EGP</small>
-      </div>
-      <div id="card-num-val" style="font-family: monospace; color: var(--muted);">**** **** **** ****</div>
+  <div class="app-card">
+    <div class="header">
+      <div class="brand"><i class="fa-solid fa-wallet"></i> MPay Client</div>
+      <span id="card-tag" style="font-size: 0.75rem; color: var(--muted);">v2.4</span>
     </div>
 
-    <button onclick="openScanner()" class="btn btn-primary"><i class="fa-solid fa-qrcode"></i> Оплатить по QR-коду</button>
-    <button id="freeze-btn" onclick="toggleFreeze()" class="btn btn-secondary"><i class="fa-solid fa-snowflake"></i> Заморозить карту</button>
-    <button onclick="changePin()" class="btn btn-secondary"><i class="fa-solid fa-key"></i> Сменить PIN-код</button>
-    <button onclick="registerSmile()" class="btn btn-secondary"><i class="fa-solid fa-face-smile"></i> Привязать Smile Pay</button>
-    <button onclick="logout()" class="btn btn-danger">Выйти</button>
-  </main>
+    <!-- LOGIN SCREEN -->
+    <main id="sc-login" class="screen">
+      <div style="text-align: center; margin-bottom: 10px;">
+        <h2>Авторизация</h2>
+        <p style="color: var(--muted); font-size: 0.85rem;">Введите реквизиты вашей карты</p>
+      </div>
+      
+      <div class="input-group">
+        <label>Номер карты</label>
+        <input type="text" id="card-input" class="input" placeholder="0000 0000 0000 0000" />
+      </div>
+      <div class="input-group">
+        <label>PIN Код</label>
+        <input type="password" id="pin-input" class="input" maxlength="4" placeholder="••••" />
+      </div>
+      <button onclick="login()" class="btn btn-cyan" style="margin-top: 10px;">Войти в Кошелек</button>
+    </main>
 
-  <!-- СКАНЕР QR -->
-  <main id="sc-qr" class="screen hidden">
-    <h3>Сканер Mpay QR</h3>
-    <video id="qr-video" class="scanner-v" autoplay playsinline></video>
-    <p style="color: var(--muted); font-size: 0.8rem; text-align: center;">Наведите камеру на QR-код терминала</p>
-    <button onclick="closeScanner()" class="btn btn-danger">Отмена</button>
-  </main>
+    <!-- DASHBOARD SCREEN -->
+    <main id="sc-dash" class="screen hidden">
+      <div class="credit-card">
+        <div style="display: flex; justify-content: space-between; color: var(--muted); font-size: 0.8rem;">
+          <span>Баланс карты</span>
+          <i class="fa-solid fa-microchip" style="font-size: 1.4rem; color: #ffd700;"></i>
+        </div>
+        <div class="card-bal"><span id="bal-val">0</span> <small style="font-size: 1rem; color: #fff;">EGP</small></div>
+        <div id="card-num-val" style="font-family: monospace; letter-spacing: 2px; color: rgba(255,255,255,0.7);">**** **** **** ****</div>
+      </div>
+
+      <button onclick="openScanner()" class="btn btn-cyan"><i class="fa-solid fa-qrcode"></i> Оплатить по QR</button>
+      <button id="freeze-btn" onclick="toggleFreeze()" class="btn btn-glass"><i class="fa-solid fa-snowflake"></i> Заморозить Карту</button>
+      <button onclick="changePin()" class="btn btn-glass"><i class="fa-solid fa-key"></i> Изменить PIN</button>
+      <button onclick="registerSmile()" class="btn btn-glass"><i class="fa-solid fa-face-smile"></i> Привязать Smile Pay</button>
+      <button onclick="logout()" class="btn btn-danger" style="margin-top: 5px;">Выйти</button>
+    </main>
+
+    <!-- QR SCANNER SCREEN -->
+    <main id="sc-qr" class="screen hidden" style="text-align: center;">
+      <h3>Сканирование QR</h3>
+      <video id="qr-video" class="scanner-v" autoplay playsinline></video>
+      <p style="color: var(--muted); font-size: 0.8rem;">Наведите камеру на QR код терминала</p>
+      <button onclick="closeScanner()" class="btn btn-danger">Отмена</button>
+    </main>
+  </div>
 
   <script>
     const firebaseConfig = { databaseURL: "https://mpay-4f703-default-rtdb.asia-southeast1.firebasedatabase.app/" };
@@ -82,7 +108,7 @@
     let userCard = null, scanInterval = null;
 
     async function login() {
-      const cardNum = document.getElementById('card-input').value.trim();
+      const cardNum = document.getElementById('card-input').value.replace(/\s+/g, '');
       const pin = document.getElementById('pin-input').value.trim();
 
       const snap = await db.ref(`cards/${cardNum}`).once('value');
@@ -97,7 +123,9 @@
     function updateUI() {
       document.getElementById('bal-val').textContent = userCard.isAdminCard ? "∞" : userCard.balance;
       document.getElementById('card-num-val').textContent = userCard.cardNumber.replace(/(.{4})/g, '$1 ').trim();
-      document.getElementById('freeze-btn').textContent = userCard.isFrozen ? "Разморозить карту" : "Заморозить карту";
+      document.getElementById('freeze-btn').innerHTML = userCard.isFrozen ? 
+        `<i class="fa-solid fa-sun"></i> Разморозить Карту` : 
+        `<i class="fa-solid fa-snowflake"></i> Заморозить Карту`;
     }
 
     async function toggleFreeze() {
@@ -112,13 +140,13 @@
       if (p && p.length === 4) {
         await db.ref(`cards/${userCard.cardNumber}`).update({ pin: p });
         userCard.pin = p;
-        alert("PIN изменен!");
-      }
+        alert("PIN успешно изменен!");
+      } else if (p) alert("PIN должен состоять из 4 цифр!");
     }
 
     async function registerSmile() {
       await db.ref(`cards/${userCard.cardNumber}`).update({ faceRegistered: true });
-      alert("Smile Pay активирован!");
+      alert("Smile Pay успешно привязан!");
     }
 
     function logout() {
@@ -147,7 +175,7 @@
     }
 
     async function processQrPayload(str) {
-      if (!str.startsWith("mpay://pay")) return alert("ОШИБКА: Этот QR-код не принадлежит системе Mpay!");
+      if (!str.startsWith("mpay://pay")) return alert("Недействительный QR код!");
       closeScanner();
       
       const urlParams = new URLSearchParams(str.split('?')[1]);
@@ -155,9 +183,9 @@
       const amt = parseFloat(urlParams.get('amt'));
 
       const tSnap = await db.ref(`terminals/${termId}`).once('value');
-      if (tSnap.val() && tSnap.val().status === 'blocked') return alert("ОШИБКА: Терминал заблокирован!");
+      if (tSnap.val() && tSnap.val().status === 'blocked') return alert("Терминал заблокирован!");
 
-      if (userCard.isFrozen) return alert("ОШИБКА: Карта заморожена!");
+      if (userCard.isFrozen) return alert("Карта заморожена!");
       if (!userCard.isAdminCard && userCard.balance < amt) return alert("Недостаточно средств!");
 
       if (confirm(`Подтвердить списание ${amt} EGP?`)) {
@@ -166,7 +194,7 @@
         await db.ref(`transactions/${Date.now()}`).set({ termId: termId, card: userCard.cardNumber, amt: amt, ts: Date.now() });
         userCard.balance = newBal;
         updateUI();
-        alert("Оплата успешно проведена!");
+        alert("Оплата прошла успешно!");
       }
     }
 
