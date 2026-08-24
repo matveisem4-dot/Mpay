@@ -3,100 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Mpay Admin Control Panel</title>
+  <title>M Pay Admin Control</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
   <style>
     :root {
-      --bg: #0a0512;
-      --panel: rgba(20, 12, 34, 0.95);
+      --bg: #0c0518;
+      --panel: rgba(28, 13, 48, 0.88);
       --border: rgba(168, 85, 247, 0.25);
       --accent: #a855f7;
       --accent-glow: rgba(168, 85, 247, 0.4);
-      --gold: #ffb703;
-      --danger: #ff3366;
-      --text: #f8fafc;
+      --text: #f1f5f9;
       --muted: #64748b;
+      --danger: #ff3366;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-    body { background: var(--bg); color: var(--text); min-height: 100dvh; display: flex; justify-content: center; align-items: center; background-image: radial-gradient(circle at 50% 0%, rgba(168, 85, 247, 0.15), transparent 70%); padding: 15px; }
+    body { background: var(--bg); color: var(--text); min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-image: radial-gradient(circle at 50% 10%, rgba(168, 85, 247, 0.15), transparent 60%); }
 
-    .app-card { width: 100%; max-width: 440px; min-height: 700px; background: var(--panel); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 28px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8); display: flex; flex-direction: column; overflow: hidden; }
-    .header { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2); }
-    .brand { font-weight: 800; font-size: 1.1rem; color: var(--accent); letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+    /* PURPLE SPLASH ANIMATION */
+    .splash-screen {
+      position: fixed;
+      inset: 0;
+      background: #0c0518;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: splashFadeOut 0.5s ease forwards 3.5s;
+    }
+    .splash-content { display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .splash-svg { width: 110px; height: 110px; overflow: visible; }
+    .splash-check { stroke-dasharray: 100; stroke-dashoffset: 100; animation: drawCheck 0.6s ease forwards 0.3s; }
+    .splash-circle { stroke-dasharray: 280; stroke-dashoffset: 280; animation: drawCircle 1s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.8s; }
+    .splash-text { font-size: 3rem; font-weight: 900; color: #ffffff; white-space: nowrap; overflow: hidden; max-width: 200px; display: flex; align-items: center; animation: erasePayText 0.8s cubic-bezier(0.77, 0, 0.175, 1) forwards 1.2s; }
+    .splash-sub { font-size: 0.85rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 3px; margin-top: 12px; opacity: 0.8; animation: erasePayText 0.8s cubic-bezier(0.77, 0, 0.175, 1) forwards 1.2s; }
 
-    .screen { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
-    .hidden { display: none !important; }
+    @keyframes drawCheck { 100% { stroke-dashoffset: 0; } }
+    @keyframes erasePayText { 0% { max-width: 200px; opacity: 1; } 100% { max-width: 0px; opacity: 0; margin: 0; padding: 0; } }
+    @keyframes drawCircle { 100% { stroke-dashoffset: 0; } }
+    @keyframes splashFadeOut { to { opacity: 0; visibility: hidden; pointer-events: none; } }
 
-    .box { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-    .box-title { font-size: 0.9rem; font-weight: 700; color: var(--accent); display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .app-card { width: 100%; max-width: 440px; min-height: 720px; background: var(--panel); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 32px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+    .header { padding: 20px 22px; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .brand { font-weight: 800; font-size: 1.15rem; color: var(--accent); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
 
-    .input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-size: 0.9rem; outline: none; }
-    .input:focus { border-color: var(--accent); }
-
-    .btn { width: 100%; padding: 12px; border-radius: 12px; border: none; font-size: 0.9rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
-    .btn-accent { background: linear-gradient(135deg, #a855f7, #6366f1); color: #fff; box-shadow: 0 4px 15px var(--accent-glow); }
-    .btn-gold { background: linear-gradient(135deg, #ffb703, #fb8500); color: #000; }
-    .btn-glass { background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
-    .btn-danger { background: rgba(255, 51, 102, 0.15); color: var(--danger); border: 1px solid rgba(255, 51, 102, 0.3); }
-
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 20px; }
-    .modal-card { background: #120924; border: 1px solid var(--border); border-radius: 24px; padding: 25px; width: 100%; max-width: 320px; text-align: center; box-shadow: 0 0 40px var(--accent-glow); }
+    .screen { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+    
+    .list-item { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .btn { padding: 8px 14px; border-radius: 12px; border: none; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+    .btn-danger { background: rgba(255, 51, 102, 0.2); color: var(--danger); border: 1px solid rgba(255, 51, 102, 0.4); }
+    .btn-main { background: var(--accent); color: #000; }
   </style>
 </head>
 <body>
 
-  <!-- AUTH LOCK -->
-  <div id="auth-modal" class="modal">
-    <div class="modal-card">
-      <i class="fa-solid fa-user-shield" style="font-size: 2.8rem; color: var(--accent); margin-bottom: 12px;"></i>
-      <h3>Mpay Security</h3>
-      <p style="color: var(--muted); font-size: 0.8rem; margin: 6px 0 16px;">Доступ к панели управления</p>
-      <input type="password" id="auth-key" class="input" style="text-align: center; font-size: 1.2rem; letter-spacing: 4px;" placeholder="Ключ доступа" />
-      <button onclick="loginAdmin()" class="btn btn-accent" style="margin-top: 12px;">Войти</button>
+  <!-- PURPLE SPLASH OVERLAY -->
+  <div id="splash" class="splash-screen">
+    <div class="splash-content">
+      <svg class="splash-svg" viewBox="0 0 100 100">
+        <circle class="splash-circle" cx="50" cy="50" r="42" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" />
+        <text x="20" y="66" font-family="'Segoe UI', sans-serif" font-size="46" font-weight="900" fill="var(--accent)">M</text>
+        <path class="splash-check" d="M 52 50 L 64 63 L 84 37" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <div class="splash-text">Pay</div>
     </div>
+    <div class="splash-sub">Admin Panel</div>
   </div>
 
   <div class="app-card">
     <div class="header">
-      <div class="brand"><i class="fa-solid fa-crown"></i> Admin Control</div>
-      <span style="font-size: 0.75rem; color: var(--gold); border: 1px solid var(--gold); padding: 2px 8px; border-radius: 12px;">PRO</span>
+      <div class="brand"><i class="fa-solid fa-user-shield"></i> MPAY ADMIN</div>
     </div>
 
-    <main id="admin-dash" class="screen hidden">
-      <!-- TERMINALS MANAGEMENT -->
-      <div class="box">
-        <div class="box-title"><i class="fa-solid fa-server"></i> Мониторинг Терминалов</div>
-        <div id="term-list" style="display: flex; flex-direction: column; gap: 8px;">
-          <div style="color: var(--muted); font-size: 0.8rem; text-align: center;">Загрузка списка...</div>
-        </div>
-      </div>
+    <main class="screen">
+      <h4 style="color: var(--accent); margin-bottom: 5px;">Управление POS Терминалами</h4>
+      <div id="terminals-list">Загрузка терминалов...</div>
 
-      <!-- CARDS MANAGEMENT -->
-      <div class="box">
-        <div class="box-title"><i class="fa-solid fa-credit-card"></i> Управление Картами</div>
-        <button onclick="createAdminCard()" class="btn btn-gold"><i class="fa-solid fa-infinity"></i> Создать Админ-Карту (∞)</button>
-        
-        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 5px;">
-          <input type="text" id="target-card" class="input" placeholder="Номер карты" />
-          <input type="number" id="topup-amt" class="input" placeholder="Сумма (EGP)" />
-          
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-            <button onclick="topupCard()" class="btn btn-glass">Пополнить</button>
-            <button onclick="deleteCard()" class="btn btn-danger">Удалить</button>
-          </div>
-          <button onclick="convertCard()" class="btn btn-glass">Сбросить статус Админа</button>
-        </div>
-      </div>
-
-      <!-- SECURITY SETTINGS -->
-      <div class="box">
-        <div class="box-title"><i class="fa-solid fa-key"></i> Секретный Ключ Входа</div>
-        <input type="password" id="new-key-input" class="input" placeholder="Новый ключ доступа" />
-        <button onclick="changeAdminKey()" class="btn btn-accent">Обновить Ключ</button>
-      </div>
+      <h4 style="color: var(--accent); margin-top: 15px; margin-bottom: 5px;">Управление Картами</h4>
+      <div id="cards-list">Загрузка карт...</div>
     </main>
   </div>
 
@@ -105,99 +92,58 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    async function loginAdmin() {
-      const enteredKey = document.getElementById('auth-key').value.trim();
-      try {
-        const snap = await db.ref('settings/adminKey').once('value');
-        const validKey = (snap.exists() && snap.val()) ? snap.val().toString() : "111";
-
-        if (enteredKey === validKey) {
-          document.getElementById('auth-modal').classList.add('hidden');
-          document.getElementById('admin-dash').classList.remove('hidden');
-          loadTerminals();
-        } else {
-          alert("Неверный секретный ключ!");
-        }
-      } catch (e) {
-        if (enteredKey === "111") {
-          document.getElementById('auth-modal').classList.add('hidden');
-          document.getElementById('admin-dash').classList.remove('hidden');
-          loadTerminals();
-        } else alert("Ошибка авторизации!");
-      }
-    }
-
-    function loadTerminals() {
-      db.ref('terminals').on('value', snap => {
-        const list = document.getElementById('term-list');
-        list.innerHTML = "";
-        if (!snap.exists()) {
-          list.innerHTML = `<div style="color:var(--muted); font-size:0.8rem; text-align:center;">Терминалы не найдены</div>`;
-          return;
-        }
-        snap.forEach(child => {
-          const t = child.val();
-          const isBlocked = t.status === 'blocked';
-          list.innerHTML += `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
-              <div>
-                <strong style="font-size:0.85rem;">${t.terminalId}</strong>
-                <div style="font-size:0.7rem; color:${isBlocked ? 'var(--danger)':'#00ff88'};">[${t.status.toUpperCase()}]</div>
-              </div>
-              <button onclick="toggleTerm('${t.terminalId}', '${t.status}')" class="btn ${isBlocked ? 'btn-accent':'btn-danger'}" style="width:auto; padding:6px 12px; font-size:0.75rem;">
-                ${isBlocked ? 'Разблок.' : 'Заблок.'}
-              </button>
-            </div>
-          `;
-        });
-      });
-    }
-
-    async function toggleTerm(id, curStatus) {
-      await db.ref(`terminals/${id}`).update({ status: curStatus === 'blocked' ? 'active' : 'blocked' });
-    }
-
-    async function createAdminCard() {
-      const num = "9999" + Math.floor(100000000000 + Math.random() * 900000000000);
-      await db.ref(`cards/${num}`).set({
-        cardNumber: num, pin: "0000", balance: 9999999, isAdminCard: true, isFrozen: false, createdAt: Date.now()
-      });
-      alert(`Создана бесконечная админ-карта!\nНомер: ${num}\nPIN: 0000`);
-    }
-
-    async function topupCard() {
-      const num = document.getElementById('target-card').value.replace(/\s+/g, '');
-      const amt = parseFloat(document.getElementById('topup-amt').value);
-      if (!num || isNaN(amt)) return alert("Заполните данные!");
+    // Live Terminals Monitor
+    db.ref('terminals').on('value', snap => {
+      const el = document.getElementById('terminals-list');
+      el.innerHTML = "";
+      if (!snap.exists()) return el.innerHTML = `<small style="color:var(--muted)">Нет активных терминалов</small>`;
       
-      const snap = await db.ref(`cards/${num}`).once('value');
-      if (snap.exists()) {
-        const cur = snap.val().balance || 0;
-        await db.ref(`cards/${num}`).update({ balance: cur + amt });
-        alert("Баланс успешно пополнен!");
-      } else alert("Карта не найдена!");
+      snap.forEach(child => {
+        const t = child.val();
+        const isBlocked = t.status === 'blocked';
+        el.innerHTML += `
+          <div class="list-item">
+            <div>
+              <strong>${t.terminalId}</strong><br>
+              <small style="color:${isBlocked ? 'var(--danger)' : 'var(--accent)'}">${t.status || 'active'}</small>
+            </div>
+            <button class="btn ${isBlocked ? 'btn-main' : 'btn-danger'}" onclick="toggleTerminal('${t.terminalId}', '${t.status}')">
+              ${isBlocked ? 'Разблокировать' : 'Заблокировать'}
+            </button>
+          </div>
+        `;
+      });
+    });
+
+    // Live Cards Monitor
+    db.ref('cards').on('value', snap => {
+      const el = document.getElementById('cards-list');
+      el.innerHTML = "";
+      if (!snap.exists()) return el.innerHTML = `<small style="color:var(--muted)">Нет созданных карт</small>`;
+
+      snap.forEach(child => {
+        const c = child.val();
+        el.innerHTML += `
+          <div class="list-item">
+            <div>
+              <strong>${c.cardNumber}</strong><br>
+              <small style="color:var(--muted)">Баланс: ${c.balance} EGP</small>
+            </div>
+            <button class="btn ${c.isFrozen ? 'btn-main' : 'btn-danger'}" onclick="toggleCard('${c.cardNumber}', ${c.isFrozen})">
+              ${c.isFrozen ? 'Разморозить' : 'Заморозить'}
+            </button>
+          </div>
+        `;
+      });
+    });
+
+    async function toggleTerminal(id, currentStatus) {
+      const newStatus = currentStatus === 'blocked' ? 'active' : 'blocked';
+      await db.ref(`terminals/${id}`).update({ status: newStatus });
     }
 
-    async function deleteCard() {
-      const num = document.getElementById('target-card').value.replace(/\s+/g, '');
-      if (!num) return alert("Укажите номер карты!");
-      await db.ref(`cards/${num}`).remove();
-      alert("Карта удалена!");
-    }
-
-    async function convertCard() {
-      const num = document.getElementById('target-card').value.replace(/\s+/g, '');
-      if (!num) return alert("Укажите номер карты!");
-      await db.ref(`cards/${num}`).update({ isAdminCard: false, balance: 0 });
-      alert("Карта конвертирована в обычную!");
-    }
-
-    async function changeAdminKey() {
-      const k = document.getElementById('new-key-input').value.trim();
-      if (k) {
-        await db.ref('settings/adminKey').set(k);
-        alert("Секретный ключ успешно обновлен!");
-      }
+    async function toggleCard(num, isFrozen) {
+      await db.ref(`cards/${num}`).update({ isFrozen: !isFrozen });
     }
   </script>
 </body>
