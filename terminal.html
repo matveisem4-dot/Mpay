@@ -13,33 +13,43 @@
 
   <style>
     :root {
-      --bg: #07090e;
-      --panel: rgba(15, 23, 36, 0.85);
-      --border: rgba(0, 255, 136, 0.2);
-      --accent: #00ff88;
-      --accent-glow: rgba(0, 255, 136, 0.35);
-      --text: #f0f4f8;
+      --bg: #050811;
+      --panel: rgba(13, 22, 38, 0.88);
+      --border: rgba(0, 255, 157, 0.25);
+      --accent: #00ff9d;
+      --accent-glow: rgba(0, 255, 157, 0.4);
+      --text: #f1f5f9;
       --muted: #64748b;
       --danger: #ff3366;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-    body { background: var(--bg); color: var(--text); min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-image: radial-gradient(circle at 50% 0%, rgba(0, 255, 136, 0.08), transparent 70%); }
+    body { background: var(--bg); color: var(--text); min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-image: radial-gradient(circle at 50% 10%, rgba(0, 255, 157, 0.12), transparent 60%); }
     
-    .app-card { width: 100%; max-width: 400px; min-height: 680px; background: var(--panel); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 28px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); display: flex; flex-direction: column; overflow: hidden; }
-    .header { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .brand { font-weight: 800; font-size: 1.1rem; color: var(--accent); letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
-    .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid transparent; }
-    .st-active { background: rgba(0, 255, 136, 0.1); color: var(--accent); border-color: rgba(0, 255, 136, 0.3); }
-    .st-blocked { background: rgba(255, 51, 102, 0.1); color: var(--danger); border-color: rgba(255, 51, 102, 0.3); }
+    .app-card { width: 100%; max-width: 410px; min-height: 700px; background: var(--panel); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 32px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8); display: flex; flex-direction: column; overflow: hidden; }
+    .header { padding: 20px 22px; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .brand { font-weight: 800; font-size: 1.15rem; color: var(--accent); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+    .status-pill { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid transparent; }
+    .st-active { background: rgba(0, 255, 157, 0.12); color: var(--accent); border-color: rgba(0, 255, 157, 0.3); }
+    .st-blocked { background: rgba(255, 51, 102, 0.12); color: var(--danger); border-color: rgba(255, 51, 102, 0.3); }
 
-    .screen { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 16px; justify-content: center; }
+    .screen { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 16px; justify-content: center; }
     .hidden { display: none !important; }
 
-    .btn { width: 100%; padding: 16px; border-radius: 16px; border: none; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s ease; }
-    .btn-main { background: linear-gradient(135deg, #00ff88, #00b862); color: #000; box-shadow: 0 4px 20px var(--accent-glow); }
+    /* HIGH TECH ANIMATED POS GRAPHIC */
+    .pos-hero { position: relative; width: 160px; height: 160px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; }
+    .pos-circle { position: absolute; inset: 0; border-radius: 50%; border: 2px dashed rgba(0, 255, 157, 0.3); animation: spin 15s linear infinite; }
+    .pos-pulse { position: absolute; inset: 15px; border-radius: 50%; background: radial-gradient(circle, rgba(0, 255, 157, 0.25) 0%, transparent 70%); animation: pulse 2.5s ease-in-out infinite; }
+    .pos-card-visual { width: 100px; height: 62px; background: linear-gradient(135deg, #0f2b20, #05140e); border: 1px solid var(--accent); border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; box-shadow: 0 10px 25px var(--accent-glow); position: relative; z-index: 2; transform: rotate(-6deg); }
+    .chip { width: 18px; height: 14px; background: #ffd700; border-radius: 3px; }
+    
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    @keyframes pulse { 0%, 100% { transform: scale(0.9); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } }
+
+    .btn { width: 100%; padding: 16px; border-radius: 16px; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s ease; }
+    .btn-main { background: linear-gradient(135deg, #00ff9d, #00b871); color: #000; box-shadow: 0 4px 20px var(--accent-glow); }
     .btn-main:active { transform: scale(0.98); }
-    .btn-glass { background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
-    .btn-glass:active { background: rgba(255, 255, 255, 0.1); }
+    .btn-glass { background: rgba(255, 255, 255, 0.04); color: #fff; border: 1px solid rgba(255,255,255,0.08); }
+    .btn-glass:active { background: rgba(255, 255, 255, 0.12); }
     .btn-danger { background: rgba(255, 51, 102, 0.15); color: var(--danger); border: 1px solid rgba(255, 51, 102, 0.3); }
 
     .display-amt { text-align: center; font-size: 3rem; font-weight: 800; color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); margin: 10px 0; }
@@ -47,9 +57,9 @@
     .key { height: 60px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; color: #fff; font-size: 1.5rem; font-weight: 700; cursor: pointer; }
     .key:active { background: rgba(255,255,255,0.15); }
 
-    #map { width: 100%; height: 260px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 10px; }
+    #map { width: 100%; height: 260px; border-radius: 18px; border: 1px solid var(--border); margin-bottom: 10px; }
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 99; padding: 20px; }
-    .modal-card { background: #0f1724; border: 1px solid var(--border); border-radius: 24px; padding: 24px; width: 100%; max-width: 320px; text-align: center; }
+    .modal-card { background: #0c1424; border: 1px solid var(--border); border-radius: 24px; padding: 24px; width: 100%; max-width: 320px; text-align: center; }
     .pin-input { width: 100%; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; font-size: 1.8rem; text-align: center; letter-spacing: 10px; margin: 15px 0; outline: none; }
   </style>
 </head>
@@ -57,28 +67,34 @@
 
   <div class="app-card">
     <div class="header">
-      <div class="brand"><i class="fa-solid fa-bolt"></i> MPay Terminal</div>
-      <div id="term-status" class="status-pill st-active">TERM_SYNC</div>
+      <div class="brand"><i class="fa-solid fa-bolt-lightning"></i> MPAY POS</div>
+      <div id="term-status" class="status-pill st-active">ONLINE</div>
     </div>
 
-    <!-- MAIN IDLE -->
+    <!-- MAIN IDLE SCREEN WITH FUTURISTIC DESIGN -->
     <main id="sc-idle" class="screen">
-      <div style="text-align: center; margin-bottom: 20px;">
-        <div style="width: 90px; height: 90px; border-radius: 50%; background: rgba(0,255,136,0.1); border: 2px solid var(--accent); margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; color: var(--accent); box-shadow: 0 0 30px var(--accent-glow);">
-          <i class="fa-solid fa-wifi"></i>
+      <div class="pos-hero">
+        <div class="pos-circle"></div>
+        <div class="pos-pulse"></div>
+        <div class="pos-card-visual">
+          <div class="chip"></div>
+          <i class="fa-solid fa-wifi" style="align-self: flex-end; font-size: 0.8rem; color: var(--accent);"></i>
         </div>
-        <h2>Готов к работе</h2>
-        <p style="color: var(--muted); font-size: 0.85rem; margin-top: 5px;">Выберите способ оплаты или укажите локацию</p>
       </div>
 
-      <button id="nfc-btn" class="btn btn-main"><i class="fa-solid fa-wireless-code"></i> Считать NFC Карту</button>
-      <button onclick="goto('sc-amount')" class="btn btn-glass"><i class="fa-solid fa-calculator"></i> Ввести сумму оплаты</button>
-      <button onclick="goto('sc-map')" class="btn btn-glass"><i class="fa-solid fa-map-location-dot"></i> Настройка Магазина (GPS)</button>
+      <div style="text-align: center; margin-bottom: 15px;">
+        <h2 style="font-size: 1.4rem;">Терминал Готов</h2>
+        <p style="color: var(--muted); font-size: 0.85rem; margin-top: 4px;">Выберите нужную операцию</p>
+      </div>
+
+      <button id="nfc-btn" class="btn btn-main"><i class="fa-solid fa-compact-disc"></i> Бесконтактное чтение (NFC)</button>
+      <button onclick="goto('sc-amount')" class="btn btn-glass"><i class="fa-solid fa-calculator"></i> Ввести сумму покупки</button>
+      <button onclick="goto('sc-map')" class="btn btn-glass"><i class="fa-solid fa-location-dot"></i> Позиция терминала (GPS)</button>
     </main>
 
     <!-- KEYPAD AMOUNT -->
     <main id="sc-amount" class="screen hidden">
-      <div style="text-align: center; color: var(--muted); font-size: 0.9rem;">Сумма к оплате</div>
+      <div style="text-align: center; color: var(--muted); font-size: 0.85rem;">Сумма операции</div>
       <div class="display-amt"><span id="amount-val">0</span> <small style="font-size: 1rem;">EGP</small></div>
       <div class="keypad">
         <button class="key" onclick="press('1')">1</button>
@@ -99,21 +115,21 @@
 
     <!-- PAY QR SCREEN -->
     <main id="sc-pay" class="screen hidden" style="text-align: center;">
-      <div style="color: var(--muted);">Оплата по QR / NFC</div>
+      <div style="color: var(--muted);">К оплате</div>
       <div class="display-amt" style="font-size: 2.2rem;"><span id="pay-target">0</span> EGP</div>
-      <div style="background: #fff; padding: 15px; border-radius: 20px; display: inline-block; margin: 10px auto; box-shadow: 0 0 25px rgba(255,255,255,0.2);">
+      <div style="background: #fff; padding: 15px; border-radius: 20px; display: inline-block; margin: 10px auto; box-shadow: 0 0 30px rgba(0, 255, 157, 0.25);">
         <div id="qrcode"></div>
       </div>
-      <p style="color: var(--muted); font-size: 0.8rem;"><i class="fa-solid fa-info-circle"></i> Сканируйте QR или поднесите NFC карту</p>
-      <button onclick="goto('sc-idle')" class="btn btn-danger" style="margin-top: 15px;">Сбросить транзакцию</button>
+      <p style="color: var(--muted); font-size: 0.8rem;"><i class="fa-solid fa-qrcode"></i> Покажите QR клиенту для сканирования</p>
+      <button onclick="goto('sc-idle')" class="btn btn-danger" style="margin-top: 15px;">Завершить</button>
     </main>
 
     <!-- MAP SCREEN -->
     <main id="sc-map" class="screen hidden">
       <h3 style="text-align: center; margin-bottom: 5px;">Локация ТТ</h3>
       <div id="map"></div>
-      <button onclick="locate()" class="btn btn-glass"><i class="fa-solid fa-crosshairs"></i> Моя геопозиция</button>
-      <button onclick="saveStoreLoc()" class="btn btn-main"><i class="fa-solid fa-cloud-arrow-up"></i> Сохранить GPS</button>
+      <button onclick="locate()" class="btn btn-glass"><i class="fa-solid fa-crosshairs"></i> Определить GPS</button>
+      <button onclick="saveStoreLoc()" class="btn btn-main"><i class="fa-solid fa-cloud-arrow-up"></i> Сохранить позицию</button>
       <button onclick="goto('sc-idle')" class="btn btn-danger">Назад</button>
     </main>
   </div>
@@ -121,9 +137,9 @@
   <!-- PIN MODAL (>10 EGP) -->
   <div id="pin-modal" class="modal hidden">
     <div class="modal-card">
-      <i class="fa-solid fa-lock" style="font-size: 2rem; color: var(--accent); margin-bottom: 10px;"></i>
-      <h3>Подтверждение</h3>
-      <p style="color: var(--muted); font-size: 0.8rem; margin-top: 4px;">Сумма превышает 10 EGP. Введите PIN</p>
+      <i class="fa-solid fa-shield-halved" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 10px;"></i>
+      <h3>Безопасная оплата</h3>
+      <p style="color: var(--muted); font-size: 0.8rem; margin-top: 4px;">Сумма более 10 EGP. Введите PIN</p>
       <input type="password" id="pin-field" class="pin-input" maxlength="4" placeholder="••••" />
       <button onclick="verifyPinAndPay()" class="btn btn-main">Подтвердить</button>
       <button onclick="closePinModal()" class="btn btn-danger" style="margin-top: 8px;">Отмена</button>
@@ -144,10 +160,10 @@
       const data = snap.val();
       const stEl = document.getElementById('term-status');
       if (data && data.status === 'blocked') {
-        stEl.textContent = `${TERM_ID} [ЗАБЛОКИРОВАН]`;
+        stEl.textContent = `БЛОКИРОВАН`;
         stEl.className = "status-pill st-blocked";
       } else {
-        stEl.textContent = `${TERM_ID} [ACTIVE]`;
+        stEl.textContent = `${TERM_ID}`;
         stEl.className = "status-pill st-active";
         if (!data) db.ref(`terminals/${TERM_ID}`).set({ terminalId: TERM_ID, status: 'active', updatedAt: Date.now() });
       }
@@ -169,7 +185,7 @@
     async function startPay() {
       if (curAmount <= 0) return alert("Укажите сумму!");
       const snap = await db.ref(`terminals/${TERM_ID}`).once('value');
-      if (snap.val() && snap.val().status === 'blocked') return alert("Терминал заблокирован администратором!");
+      if (snap.val() && snap.val().status === 'blocked') return alert("Терминал заблокирован!");
       
       document.getElementById('pay-target').textContent = curAmount;
       document.getElementById('qrcode').innerHTML = "";
@@ -182,16 +198,16 @@
         try {
           const ndef = new NDEFReader();
           await ndef.scan();
-          alert("NFC считыватель активен. Поднесите карту.");
+          alert("Сканер NFC готов. Приложите карту.");
           ndef.addEventListener("reading", ({ serialNumber }) => handleNfc(serialNumber));
         } catch (e) { alert("Ошибка NFC: " + e.message); }
-      } else alert("Web NFC не поддерживается вашим устройством!");
+      } else alert("Web NFC не поддерживается вашим браузером!");
     });
 
     async function handleNfc(uid) {
       if (document.getElementById('sc-pay').classList.contains('hidden')) return;
       const snap = await db.ref('cards').orderByChild('nfcUid').equalTo(uid).once('value');
-      if (!snap.exists()) return alert("Карта не найдена!");
+      if (!snap.exists()) return alert("Карта не привязана!");
       
       const card = Object.values(snap.val())[0];
       if (card.isFrozen) return alert("Карта заблокирована!");
@@ -224,7 +240,7 @@
       await db.ref(`cards/${card.cardNumber}`).update({ balance: newBal });
       await db.ref(`transactions/${Date.now()}`).set({ termId: TERM_ID, card: card.cardNumber, amt: curAmount, ts: Date.now() });
       
-      alert("Успешная оплата!");
+      alert("Оплата успешно проведена!");
       curAmount = 0;
       document.getElementById('amount-val').textContent = "0";
       goto('sc-idle');
@@ -249,7 +265,7 @@
     function saveStoreLoc() {
       const pos = markerObj.getLatLng();
       db.ref(`terminals/${TERM_ID}`).update({ lat: pos.lat, lng: pos.lng, updatedAt: Date.now() });
-      alert("Геопозиция точки сохранена!");
+      alert("Локация сохранена!");
     }
   </script>
 </body>
