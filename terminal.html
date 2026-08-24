@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Mpay Terminal POS</title>
+  <title>M Pay Terminal POS</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -21,49 +21,100 @@
       --text: #f1f5f9;
       --muted: #64748b;
       --danger: #ff3366;
+      --warning: #ffb703;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
     body { background: var(--bg); color: var(--text); min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-image: radial-gradient(circle at 50% 10%, rgba(0, 255, 157, 0.12), transparent 60%); }
     
-    .app-card { width: 100%; max-width: 410px; min-height: 700px; background: var(--panel); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 32px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8); display: flex; flex-direction: column; overflow: hidden; }
+    /* SPLASH SCREEN ANIMATION */
+    .splash-screen {
+      position: fixed;
+      inset: 0;
+      background: #050811;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: splashFadeOut 0.5s ease forwards 3.5s;
+    }
+    .splash-content { display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .splash-svg { width: 110px; height: 110px; overflow: visible; }
+    .splash-check { stroke-dasharray: 100; stroke-dashoffset: 100; animation: drawCheck 0.6s ease forwards 0.3s; }
+    .splash-circle { stroke-dasharray: 280; stroke-dashoffset: 280; animation: drawCircle 1s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.8s; }
+    .splash-text { font-size: 3rem; font-weight: 900; color: #ffffff; white-space: nowrap; overflow: hidden; max-width: 200px; display: flex; align-items: center; animation: erasePayText 0.8s cubic-bezier(0.77, 0, 0.175, 1) forwards 1.2s; }
+    .splash-sub { font-size: 0.85rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 3px; margin-top: 12px; opacity: 0.8; animation: erasePayText 0.8s cubic-bezier(0.77, 0, 0.175, 1) forwards 1.2s; }
+
+    @keyframes drawCheck { 100% { stroke-dashoffset: 0; } }
+    @keyframes erasePayText { 0% { max-width: 200px; opacity: 1; } 100% { max-width: 0px; opacity: 0; margin: 0; padding: 0; } }
+    @keyframes drawCircle { 100% { stroke-dashoffset: 0; } }
+    @keyframes splashFadeOut { to { opacity: 0; visibility: hidden; pointer-events: none; } }
+
+    .app-card { width: 100%; max-width: 410px; min-height: 720px; background: var(--panel); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 32px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8); display: flex; flex-direction: column; overflow: hidden; position: relative; }
     .header { padding: 20px 22px; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); }
     .brand { font-weight: 800; font-size: 1.15rem; color: var(--accent); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
     .status-pill { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid transparent; }
     .st-active { background: rgba(0, 255, 157, 0.12); color: var(--accent); border-color: rgba(0, 255, 157, 0.3); }
     .st-blocked { background: rgba(255, 51, 102, 0.12); color: var(--danger); border-color: rgba(255, 51, 102, 0.3); }
 
-    .screen { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 16px; justify-content: center; }
+    .screen { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 14px; justify-content: center; overflow-y: auto; }
     .hidden { display: none !important; }
 
-    /* HIGH TECH ANIMATED POS GRAPHIC */
-    .pos-hero { position: relative; width: 160px; height: 160px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; }
+    .pos-hero { position: relative; width: 140px; height: 140px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; }
     .pos-circle { position: absolute; inset: 0; border-radius: 50%; border: 2px dashed rgba(0, 255, 157, 0.3); animation: spin 15s linear infinite; }
     .pos-pulse { position: absolute; inset: 15px; border-radius: 50%; background: radial-gradient(circle, rgba(0, 255, 157, 0.25) 0%, transparent 70%); animation: pulse 2.5s ease-in-out infinite; }
-    .pos-card-visual { width: 100px; height: 62px; background: linear-gradient(135deg, #0f2b20, #05140e); border: 1px solid var(--accent); border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; box-shadow: 0 10px 25px var(--accent-glow); position: relative; z-index: 2; transform: rotate(-6deg); }
-    .chip { width: 18px; height: 14px; background: #ffd700; border-radius: 3px; }
+    .pos-card-visual { width: 90px; height: 56px; background: linear-gradient(135deg, #0f2b20, #05140e); border: 1px solid var(--accent); border-radius: 10px; display: flex; flex-direction: column; justify-content: space-between; padding: 8px; box-shadow: 0 10px 25px var(--accent-glow); position: relative; z-index: 2; transform: rotate(-6deg); }
+    .chip { width: 16px; height: 12px; background: #ffd700; border-radius: 3px; }
     
     @keyframes spin { 100% { transform: rotate(360deg); } }
     @keyframes pulse { 0%, 100% { transform: scale(0.9); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } }
 
-    .btn { width: 100%; padding: 16px; border-radius: 16px; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s ease; }
+    .nfc-anim-container { position: relative; width: 160px; height: 160px; margin: 10px auto; display: flex; align-items: center; justify-content: center; }
+    .nfc-wave { position: absolute; inset: 0; border: 2px solid var(--accent); border-radius: 50%; opacity: 0; animation: wave-pulse 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+    .nfc-wave:nth-child(2) { animation-delay: 0.6s; }
+    .nfc-wave:nth-child(3) { animation-delay: 1.2s; }
+    .qr-holder { position: relative; z-index: 5; background: #fff; padding: 10px; border-radius: 16px; box-shadow: 0 0 25px var(--accent-glow); }
+
+    @keyframes wave-pulse { 0% { transform: scale(0.6); opacity: 0.8; } 100% { transform: scale(1.4); opacity: 0; } }
+
+    .btn { width: 100%; padding: 14px; border-radius: 16px; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s ease; }
     .btn-main { background: linear-gradient(135deg, #00ff9d, #00b871); color: #000; box-shadow: 0 4px 20px var(--accent-glow); }
-    .btn-main:active { transform: scale(0.98); }
     .btn-glass { background: rgba(255, 255, 255, 0.04); color: #fff; border: 1px solid rgba(255,255,255,0.08); }
-    .btn-glass:active { background: rgba(255, 255, 255, 0.12); }
     .btn-danger { background: rgba(255, 51, 102, 0.15); color: var(--danger); border: 1px solid rgba(255, 51, 102, 0.3); }
 
-    .display-amt { text-align: center; font-size: 3rem; font-weight: 800; color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); margin: 10px 0; }
-    .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 0 auto; width: 100%; }
-    .key { height: 60px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; color: #fff; font-size: 1.5rem; font-weight: 700; cursor: pointer; }
+    .input-group { width: 100%; margin-bottom: 6px; }
+    .input-group label { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; display: block; text-transform: uppercase; }
+    .input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; color: #fff; font-size: 0.95rem; outline: none; text-align: center; }
+    .input:focus { border-color: var(--accent); }
+
+    .display-amt { text-align: center; font-size: 2.8rem; font-weight: 800; color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); margin: 5px 0; }
+    .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 auto; width: 100%; }
+    .key { height: 52px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; color: #fff; font-size: 1.3rem; font-weight: 700; cursor: pointer; }
     .key:active { background: rgba(255,255,255,0.15); }
 
-    #map { width: 100%; height: 260px; border-radius: 18px; border: 1px solid var(--border); margin-bottom: 10px; }
+    #map { width: 100%; height: 220px; border-radius: 18px; border: 1px solid var(--border); margin-bottom: 10px; }
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 99; padding: 20px; }
     .modal-card { background: #0c1424; border: 1px solid var(--border); border-radius: 24px; padding: 24px; width: 100%; max-width: 320px; text-align: center; }
-    .pin-input { width: 100%; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; font-size: 1.8rem; text-align: center; letter-spacing: 10px; margin: 15px 0; outline: none; }
+    .pin-input { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; font-size: 1.6rem; text-align: center; letter-spacing: 8px; margin: 15px 0; outline: none; }
+
+    .test-box { background: rgba(255, 255, 255, 0.03); border: 1px dashed rgba(255,255,255,0.15); border-radius: 16px; padding: 12px; margin-top: 10px; text-align: left; }
+    .test-box-title { font-size: 0.75rem; color: var(--warning); text-transform: uppercase; font-weight: bold; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
   </style>
 </head>
 <body>
+
+  <!-- ANIMATED SPLASH OVERLAY -->
+  <div id="splash" class="splash-screen">
+    <div class="splash-content">
+      <svg class="splash-svg" viewBox="0 0 100 100">
+        <circle class="splash-circle" cx="50" cy="50" r="42" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" />
+        <text x="20" y="66" font-family="'Segoe UI', sans-serif" font-size="46" font-weight="900" fill="var(--accent)">M</text>
+        <path class="splash-check" d="M 52 50 L 64 63 L 84 37" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <div class="splash-text">Pay</div>
+    </div>
+    <div class="splash-sub">POS Terminal</div>
+  </div>
 
   <div class="app-card">
     <div class="header">
@@ -71,7 +122,7 @@
       <div id="term-status" class="status-pill st-active">ONLINE</div>
     </div>
 
-    <!-- MAIN IDLE SCREEN WITH FUTURISTIC DESIGN -->
+    <!-- MAIN IDLE SCREEN -->
     <main id="sc-idle" class="screen">
       <div class="pos-hero">
         <div class="pos-circle"></div>
@@ -82,14 +133,36 @@
         </div>
       </div>
 
-      <div style="text-align: center; margin-bottom: 15px;">
-        <h2 style="font-size: 1.4rem;">Терминал Готов</h2>
-        <p style="color: var(--muted); font-size: 0.85rem; margin-top: 4px;">Выберите нужную операцию</p>
+      <div style="text-align: center; margin-bottom: 10px;">
+        <h2 style="font-size: 1.3rem;">Терминал Готов</h2>
+        <p style="color: var(--muted); font-size: 0.8rem; margin-top: 4px;">Прием платежей и эмиссия карт</p>
       </div>
 
-      <button id="nfc-btn" class="btn btn-main"><i class="fa-solid fa-compact-disc"></i> Бесконтактное чтение (NFC)</button>
-      <button onclick="goto('sc-amount')" class="btn btn-glass"><i class="fa-solid fa-calculator"></i> Ввести сумму покупки</button>
+      <button onclick="goto('sc-amount')" class="btn btn-main"><i class="fa-solid fa-calculator"></i> Оплатить покупку</button>
+      <button onclick="goto('sc-issue')" class="btn btn-glass"><i class="fa-solid fa-credit-card"></i> Выпустить карту клиенту</button>
       <button onclick="goto('sc-map')" class="btn btn-glass"><i class="fa-solid fa-location-dot"></i> Позиция терминала (GPS)</button>
+    </main>
+
+    <!-- ISSUE NEW CARD SCREEN -->
+    <main id="sc-issue" class="screen hidden">
+      <div style="text-align: center; margin-bottom: 10px;">
+        <h3 style="color: var(--accent);">Эмиссия Карты</h3>
+        <p style="color: var(--muted); font-size: 0.8rem;">Регистрация карт-счета на терминале</p>
+      </div>
+
+      <div class="input-group">
+        <label>PIN Код карт-счета (4 цифры)</label>
+        <input type="password" id="pos-new-pin" class="input" maxlength="4" placeholder="••••" />
+      </div>
+
+      <div class="input-group">
+        <label>Начальный баланс (EGP)</label>
+        <input type="number" id="pos-new-bal" class="input" value="100" />
+      </div>
+
+      <button onclick="issueCardFromPOS()" class="btn btn-main" style="margin-top: 10px;"><i class="fa-solid fa-plus-circle"></i> Создать карту</button>
+      <button onclick="writeToBlankNFC()" class="btn btn-glass"><i class="fa-solid fa-file-pen"></i> Записать на NFC-метку</button>
+      <button onclick="goto('sc-idle')" class="btn btn-danger">Отмена</button>
     </main>
 
     <!-- KEYPAD AMOUNT -->
@@ -113,15 +186,38 @@
       <button onclick="goto('sc-idle')" class="btn btn-danger" style="margin-top: 10px;">Отмена</button>
     </main>
 
-    <!-- PAY QR SCREEN -->
+    <!-- PAY SCREEN -->
     <main id="sc-pay" class="screen hidden" style="text-align: center;">
       <div style="color: var(--muted);">К оплате</div>
-      <div class="display-amt" style="font-size: 2.2rem;"><span id="pay-target">0</span> EGP</div>
-      <div style="background: #fff; padding: 15px; border-radius: 20px; display: inline-block; margin: 10px auto; box-shadow: 0 0 30px rgba(0, 255, 157, 0.25);">
-        <div id="qrcode"></div>
+      <div class="display-amt" style="font-size: 2rem;"><span id="pay-target">0</span> EGP</div>
+
+      <div class="nfc-anim-container">
+        <div class="nfc-wave"></div>
+        <div class="nfc-wave"></div>
+        <div class="nfc-wave"></div>
+        <div class="qr-holder">
+          <div id="qrcode"></div>
+        </div>
       </div>
-      <p style="color: var(--muted); font-size: 0.8rem;"><i class="fa-solid fa-qrcode"></i> Покажите QR клиенту для сканирования</p>
-      <button onclick="goto('sc-idle')" class="btn btn-danger" style="margin-top: 15px;">Завершить</button>
+
+      <p id="nfc-status-txt" style="color: var(--accent); font-size: 0.8rem; margin-bottom: 5px;">
+        <i class="fa-solid fa-wifi fa-spin"></i> Поднесите NFC карту...
+      </p>
+
+      <div class="test-box">
+        <div class="test-box-title"><i class="fa-solid fa-vial"></i> Тестовая оплата (вручную без NFC)</div>
+        <div class="input-group">
+          <input type="text" id="manual-card-num" class="input" placeholder="Номер карты (4400...)" style="margin-bottom: 6px;" />
+        </div>
+        <div class="input-group">
+          <input type="password" id="manual-card-pin" class="input" maxlength="4" placeholder="PIN код" style="margin-bottom: 8px;" />
+        </div>
+        <button onclick="payManualTest()" class="btn btn-main" style="padding: 10px; font-size: 0.85rem;">
+          <i class="fa-solid fa-check"></i> Проверить и списать
+        </button>
+      </div>
+
+      <button onclick="goto('sc-idle')" class="btn btn-danger" style="margin-top: 10px;">Отмена</button>
     </main>
 
     <!-- MAP SCREEN -->
@@ -134,7 +230,6 @@
     </main>
   </div>
 
-  <!-- PIN MODAL (>10 EGP) -->
   <div id="pin-modal" class="modal hidden">
     <div class="modal-card">
       <i class="fa-solid fa-shield-halved" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 10px;"></i>
@@ -154,7 +249,7 @@
     let TERM_ID = localStorage.getItem('mpay_terminal_id') || ("TERM_" + Math.floor(1000 + Math.random() * 9000));
     localStorage.setItem('mpay_terminal_id', TERM_ID);
     
-    let curAmount = 0, pendingCard = null, mapObj = null, markerObj = null;
+    let curAmount = 0, pendingCard = null, mapObj = null, markerObj = null, lastCreatedCard = null, ndefInstance = null;
 
     db.ref(`terminals/${TERM_ID}`).on('value', snap => {
       const data = snap.val();
@@ -182,6 +277,33 @@
       curAmount = parseInt(el.textContent, 10) || 0;
     }
 
+    async function issueCardFromPOS() {
+      const pin = document.getElementById('pos-new-pin').value.trim();
+      const bal = parseFloat(document.getElementById('pos-new-bal').value) || 0;
+      if (pin.length !== 4 || isNaN(parseInt(pin))) return alert("PIN должен содержать 4 цифры!");
+
+      const cardNum = "4400" + Math.floor(100000000000 + Math.random() * 900000000000);
+      const cardData = { cardNumber: cardNum, pin: pin, balance: bal, isFrozen: false, isAdminCard: false, createdAt: Date.now() };
+
+      await db.ref(`cards/${cardNum}`).set(cardData);
+      lastCreatedCard = cardData;
+      
+      document.getElementById('manual-card-num').value = cardNum;
+      document.getElementById('manual-card-pin').value = pin;
+      alert(`Карта создана!\nНомер: ${cardNum}\nPIN: ${pin}\nБаланс: ${bal} EGP`);
+    }
+
+    async function writeToBlankNFC() {
+      if (!lastCreatedCard) return alert("Сначала создайте карту!");
+      if ('NDEFReader' in window) {
+        try {
+          const ndef = new NDEFReader();
+          await ndef.write(`MPAY:${lastCreatedCard.cardNumber}:${lastCreatedCard.pin}`);
+          alert("Данные карты записаны на NFC метку!");
+        } catch (e) { alert("Ошибка записи NFC: " + e.message); }
+      } else alert("Web NFC API не поддерживается вашим устройством!");
+    }
+
     async function startPay() {
       if (curAmount <= 0) return alert("Укажите сумму!");
       const snap = await db.ref(`terminals/${TERM_ID}`).once('value');
@@ -189,27 +311,83 @@
       
       document.getElementById('pay-target').textContent = curAmount;
       document.getElementById('qrcode').innerHTML = "";
-      new QRCode(document.getElementById('qrcode'), { text: `mpay://pay?termId=${TERM_ID}&amt=${curAmount}`, width: 140, height: 140 });
+      new QRCode(document.getElementById('qrcode'), { text: `mpay://pay?termId=${TERM_ID}&amt=${curAmount}`, width: 120, height: 120 });
+      
       goto('sc-pay');
+      initNfcScanner();
     }
 
-    document.getElementById('nfc-btn').addEventListener('click', async () => {
+    async function initNfcScanner() {
+      const statusTxt = document.getElementById('nfc-status-txt');
       if ('NDEFReader' in window) {
         try {
-          const ndef = new NDEFReader();
-          await ndef.scan();
-          alert("Сканер NFC готов. Приложите карту.");
-          ndef.addEventListener("reading", ({ serialNumber }) => handleNfc(serialNumber));
-        } catch (e) { alert("Ошибка NFC: " + e.message); }
-      } else alert("Web NFC не поддерживается вашим браузером!");
-    });
+          if (!ndefInstance) {
+            ndefInstance = new NDEFReader();
+            await ndefInstance.scan();
+            ndefInstance.addEventListener("reading", ({ serialNumber, message }) => {
+              let payloadText = "";
+              for (const record of message.records) {
+                if (record.recordType === "text") {
+                  const textDecoder = new TextDecoder(record.encoding || 'utf-8');
+                  payloadText = textDecoder.decode(record.data);
+                }
+              }
+              processNfcTap(serialNumber, payloadText);
+            });
+          }
+          statusTxt.innerHTML = `<i class="fa-solid fa-wifi fa-spin"></i> NFC готов. Поднесите карту...`;
+          statusTxt.style.color = "var(--accent)";
+        } catch (e) {
+          statusTxt.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> NFC недоступен. Используйте ввод ниже.`;
+          statusTxt.style.color = "var(--warning)";
+        }
+      } else {
+        statusTxt.innerHTML = `<i class="fa-solid fa-circle-info"></i> Web NFC не поддерживается браузером.`;
+        statusTxt.style.color = "var(--warning)";
+      }
+    }
 
-    async function handleNfc(uid) {
-      if (document.getElementById('sc-pay').classList.contains('hidden')) return;
-      const snap = await db.ref('cards').orderByChild('nfcUid').equalTo(uid).once('value');
-      if (!snap.exists()) return alert("Карта не привязана!");
-      
-      const card = Object.values(snap.val())[0];
+    async function processNfcTap(uid, payloadText) {
+      if (curAmount <= 0) return;
+      const cleanUid = uid ? uid.replace(/[^a-zA-Z0-9]/g, '_') : '';
+      let card = null;
+
+      if (payloadText && payloadText.startsWith("MPAY:")) {
+        const parts = payloadText.split(":");
+        const cardNum = parts[1];
+        const payloadPin = parts[2] || "";
+
+        const cSnap = await db.ref(`cards/${cardNum}`).once('value');
+        if (cSnap.exists()) {
+          card = cSnap.val();
+          if (cleanUid) await db.ref(`cards/${cardNum}/uids/${cleanUid}`).set(true);
+          if (card.isFrozen) return alert("Карта заблокирована!");
+
+          if (curAmount > 10) {
+            if (payloadPin && payloadPin === card.pin) {
+              commitDebit(card);
+              return;
+            } else {
+              pendingCard = card;
+              document.getElementById('pin-modal').classList.remove('hidden');
+              return;
+            }
+          } else {
+            commitDebit(card);
+            return;
+          }
+        }
+      }
+
+      const allCardsSnap = await db.ref('cards').once('value');
+      if (allCardsSnap.exists()) {
+        allCardsSnap.forEach(child => {
+          const c = child.val();
+          if (c.nfcUid === uid || (c.uids && cleanUid && c.uids[cleanUid])) card = c;
+        });
+      }
+
+      if (!card) return alert("Неопознанная NFC метка!");
       if (card.isFrozen) return alert("Карта заблокирована!");
 
       pendingCard = card;
@@ -218,6 +396,26 @@
       } else {
         commitDebit(card);
       }
+    }
+
+    async function payManualTest() {
+      const cardNum = document.getElementById('manual-card-num').value.trim();
+      const pin = document.getElementById('manual-card-pin').value.trim();
+
+      if (!cardNum || !pin) return alert("Введите номер карты и PIN-код!");
+      if (curAmount <= 0) return alert("Укажите сумму оплаты!");
+
+      const tSnap = await db.ref(`terminals/${TERM_ID}`).once('value');
+      if (tSnap.val() && tSnap.val().status === 'blocked') return alert("Терминал заблокирован!");
+
+      const cSnap = await db.ref(`cards/${cardNum}`).once('value');
+      if (!cSnap.exists()) return alert("Карта с таким номером не найдена!");
+
+      const card = cSnap.val();
+      if (card.isFrozen) return alert("Карта заблокирована!");
+      if (card.pin !== pin) return alert("Неверный PIN-код!");
+
+      commitDebit(card);
     }
 
     function verifyPinAndPay() {
@@ -234,15 +432,17 @@
     }
 
     async function commitDebit(card) {
-      if (!card.isAdminCard && card.balance < curAmount) return alert("Недостаточно средств!");
+      if (!card.isAdminCard && card.balance < curAmount) return alert("Недостаточно средств на карте!");
       const newBal = card.isAdminCard ? card.balance : (card.balance - curAmount);
       
       await db.ref(`cards/${card.cardNumber}`).update({ balance: newBal });
       await db.ref(`transactions/${Date.now()}`).set({ termId: TERM_ID, card: card.cardNumber, amt: curAmount, ts: Date.now() });
       
-      alert("Оплата успешно проведена!");
+      alert(`Оплата ${curAmount} EGP прошла успешно!\nОстаток: ${newBal} EGP`);
       curAmount = 0;
       document.getElementById('amount-val').textContent = "0";
+      document.getElementById('manual-card-num').value = "";
+      document.getElementById('manual-card-pin').value = "";
       goto('sc-idle');
     }
 
