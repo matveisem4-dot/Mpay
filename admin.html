@@ -14,51 +14,46 @@
       --panel: rgba(28, 13, 48, 0.88);
       --border: rgba(168, 85, 247, 0.25);
       --accent: #a855f7;
-      --accent-glow: rgba(168, 85, 247, 0.4);
       --text: #f1f5f9;
       --muted: #64748b;
       --danger: #ff3366;
+      --success: #00ff9d;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
     body { background: var(--bg); color: var(--text); min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-image: radial-gradient(circle at 50% 10%, rgba(168, 85, 247, 0.15), transparent 60%); }
 
+    /* FIXED SPLASH SCREEN ANIMATION */
     .splash-screen {
       position: fixed; inset: 0; background: #0c0518; z-index: 99999;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       animation: splashFadeOut 0.4s ease-out forwards 3.2s;
     }
     .splash-brand { display: flex; align-items: center; justify-content: center; position: relative; }
-    .splash-svg { width: 110px; height: 110px; flex-shrink: 0; overflow: visible; }
+    .splash-svg { width: 120px; height: 120px; flex-shrink: 0; overflow: visible; }
     
     .splash-circle {
       fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round;
       pathLength: 1; stroke-dasharray: 1; stroke-dashoffset: 1;
-      animation: drawCircle 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.8s;
+      animation: drawCircle 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards 2.1s;
     }
     .splash-check {
       fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round;
       pathLength: 1; stroke-dasharray: 1; stroke-dashoffset: 1;
-      animation: drawCheck 0.5s ease forwards 0.3s;
+      animation: drawCheck 0.5s ease forwards 1.6s;
     }
     .splash-pay {
       font-size: 3rem; font-weight: 900; color: #ffffff; white-space: nowrap; overflow: hidden;
-      display: inline-block; animation: fadePay 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.2s;
+      display: inline-block; animation: fadePay 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.0s;
     }
     .splash-sub {
       font-size: 0.85rem; font-weight: 700; color: var(--accent); text-transform: uppercase;
-      letter-spacing: 3px; margin-top: 12px; animation: fadeSub 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.2s;
+      letter-spacing: 3px; margin-top: 12px; animation: fadeSub 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.0s;
     }
 
     @keyframes drawCheck { to { stroke-dashoffset: 0; } }
     @keyframes drawCircle { to { stroke-dashoffset: 0; } }
-    @keyframes fadePay {
-      0% { opacity: 1; max-width: 120px; transform: translateX(0); }
-      100% { opacity: 0; max-width: 0px; transform: translateX(-10px); margin: 0; visibility: hidden; }
-    }
-    @keyframes fadeSub {
-      0% { opacity: 0.8; transform: translateY(0); }
-      100% { opacity: 0; transform: translateY(5px); visibility: hidden; }
-    }
+    @keyframes fadePay { 0% { opacity: 1; max-width: 120px; } 100% { opacity: 0; max-width: 0px; visibility: hidden; } }
+    @keyframes fadeSub { 0% { opacity: 0.8; } 100% { opacity: 0; visibility: hidden; } }
     @keyframes splashFadeOut { to { opacity: 0; visibility: hidden; pointer-events: none; } }
 
     .app-card { width: 100%; max-width: 440px; min-height: 720px; background: var(--panel); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 32px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8); display: flex; flex-direction: column; overflow: hidden; position: relative; }
@@ -66,22 +61,28 @@
     .brand { font-weight: 800; font-size: 1.15rem; color: var(--accent); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
 
     .screen { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+    .hidden { display: none !important; }
     
     .list-item { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .btn { padding: 8px 14px; border-radius: 12px; border: none; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+    .btn { padding: 10px 16px; border-radius: 12px; border: none; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
     .btn-danger { background: rgba(255, 51, 102, 0.2); color: var(--danger); border: 1px solid rgba(255, 51, 102, 0.4); }
     .btn-main { background: var(--accent); color: #000; }
+    .btn-glass { background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); }
+
+    .pin-input { width: 100%; padding: 12px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; font-size: 1.4rem; text-align: center; letter-spacing: 4px; margin: 15px 0; outline: none; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 99; padding: 20px; }
+    .modal-card { background: #0c1424; border: 1px solid var(--border); border-radius: 24px; padding: 24px; width: 100%; max-width: 320px; text-align: center; }
   </style>
 </head>
 <body>
 
-  <!-- SPLASH OVERLAY -->
+  <!-- SPLASH OVERLAY WITH ADJUSTED CHECKMARK POSITION -->
   <div id="splash" class="splash-screen">
     <div class="splash-brand">
-      <svg class="splash-svg" viewBox="0 0 100 100">
-        <circle class="splash-circle" cx="50" cy="50" r="42" />
-        <text x="22" y="66" font-family="'Segoe UI', sans-serif" font-size="46" font-weight="900" fill="var(--accent)">M</text>
-        <path class="splash-check" d="M 50 52 L 62 64 L 82 38" />
+      <svg class="splash-svg" viewBox="0 0 120 120">
+        <circle class="splash-circle" cx="60" cy="60" r="50" />
+        <text x="25" y="72" font-family="'Segoe UI', sans-serif" font-size="42" font-weight="900" fill="var(--accent)">M</text>
+        <path class="splash-check" d="M 68 62 L 78 72 L 98 46" />
       </svg>
       <div class="splash-pay">Pay</div>
     </div>
@@ -91,15 +92,47 @@
   <div class="app-card">
     <div class="header">
       <div class="brand"><i class="fa-solid fa-user-shield"></i> MPAY ADMIN</div>
+      <button id="btn-change-key" class="btn btn-glass hidden" onclick="openPassModal()"><i class="fa-solid fa-key"></i></button>
     </div>
 
-    <main class="screen">
-      <h4 style="color: var(--accent); margin-bottom: 5px;">Управление POS Терминалами</h4>
-      <div id="terminals-list">Загрузка терминалов...</div>
+    <!-- AUTH SCREEN -->
+    <main id="sc-auth" class="screen" style="justify-content: center; text-align: center;">
+      <i class="fa-solid fa-lock" style="font-size: 3rem; color: var(--accent); margin-bottom: 10px;"></i>
+      <h3 style="color: #fff;">Доступ Ограничен</h3>
+      <p style="color: var(--muted); font-size: 0.85rem;">Введите ключ доступа для входа</p>
+      
+      <input type="password" id="admin-pass-input" class="pin-input" placeholder="Ключ доступа" />
+      
+      <button onclick="authenticateAdmin()" class="btn btn-main" style="width: 100%;"><i class="fa-solid fa-right-to-bracket"></i> Войти</button>
+      <div id="auth-status" style="font-size: 0.8rem; color: var(--danger); margin-top: 10px;"></div>
+    </main>
 
-      <h4 style="color: var(--accent); margin-top: 15px; margin-bottom: 5px;">Управление Картами</h4>
+    <!-- MAIN ADMIN DASHBOARD -->
+    <main id="sc-dashboard" class="screen hidden">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+        <h4 style="color: var(--accent);">Управление POS Терминалами</h4>
+      </div>
+      <div id="terminals-list">Загрузка...</div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; margin-bottom: 5px;">
+        <h4 style="color: var(--accent);">Управление Картами</h4>
+      </div>
       <div id="cards-list">Загрузка карт...</div>
     </main>
+  </div>
+
+  <!-- CHANGE PASSCODE MODAL -->
+  <div id="pass-modal" class="modal hidden">
+    <div class="modal-card">
+      <i class="fa-solid fa-key" style="font-size: 2.2rem; color: var(--accent); margin-bottom: 8px;"></i>
+      <h3>Смена ключа доступа</h3>
+      <p style="color: var(--muted); font-size: 0.8rem; margin-top: 4px;">Введите новый ключ для входа в админ-панель</p>
+      
+      <input type="password" id="new-admin-key-input" class="pin-input" placeholder="Новый ключ" />
+      
+      <button onclick="saveNewAdminKey()" class="btn btn-main" style="width: 100%;">Сохранить</button>
+      <button onclick="closePassModal()" class="btn btn-danger" style="width: 100%; margin-top: 8px;">Отмена</button>
+    </div>
   </div>
 
   <script>
@@ -107,48 +140,107 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    db.ref('terminals').on('value', snap => {
-      const el = document.getElementById('terminals-list');
-      el.innerHTML = "";
-      if (!snap.exists()) return el.innerHTML = `<small style="color:var(--muted)">Нет активных терминалов</small>`;
-      
-      snap.forEach(child => {
-        const t = child.val();
-        const isBlocked = t.status === 'blocked';
-        el.innerHTML += `
-          <div class="list-item">
-            <div>
-              <strong>${t.terminalId}</strong><br>
-              <small style="color:${isBlocked ? 'var(--danger)' : 'var(--accent)'}">${t.status || 'active'}</small>
-            </div>
-            <button class="btn ${isBlocked ? 'btn-main' : 'btn-danger'}" onclick="toggleTerminal('${t.terminalId}', '${t.status}')">
-              ${isBlocked ? 'Разблокировать' : 'Заблокировать'}
-            </button>
-          </div>
-        `;
-      });
+    let currentMasterKey = "1";
+
+    db.ref('config/adminPin').on('value', snap => {
+      if (snap.exists()) {
+        currentMasterKey = String(snap.val());
+      } else {
+        db.ref('config/adminPin').set("1");
+        currentMasterKey = "1";
+      }
     });
 
-    db.ref('cards').on('value', snap => {
-      const el = document.getElementById('cards-list');
-      el.innerHTML = "";
-      if (!snap.exists()) return el.innerHTML = `<small style="color:var(--muted)">Нет созданных карт</small>`;
+    async function authenticateAdmin() {
+      const enteredKey = document.getElementById('admin-pass-input').value.trim();
+      const statusEl = document.getElementById('auth-status');
 
-      snap.forEach(child => {
-        const c = child.val();
-        el.innerHTML += `
-          <div class="list-item">
-            <div>
-              <strong>${c.cardNumber}</strong><br>
-              <small style="color:var(--muted)">Баланс: ${c.balance} EGP</small>
+      if (enteredKey === currentMasterKey) {
+        document.getElementById('sc-auth').classList.add('hidden');
+        document.getElementById('sc-dashboard').classList.remove('hidden');
+        document.getElementById('btn-change-key').classList.remove('hidden');
+        loadDashboardData();
+      } else {
+        statusEl.textContent = "Неверный ключ доступа!";
+      }
+    }
+
+    function openPassModal() {
+      document.getElementById('pass-modal').classList.remove('hidden');
+    }
+
+    function closePassModal() {
+      document.getElementById('pass-modal').classList.add('hidden');
+      document.getElementById('new-admin-key-input').value = "";
+    }
+
+    async function saveNewAdminKey() {
+      const newKey = document.getElementById('new-admin-key-input').value.trim();
+      if (!newKey) return alert("Введите новый ключ!");
+
+      try {
+        await db.ref('config/adminPin').set(newKey);
+        closePassModal();
+        alert("Ключ доступа успешно изменен!");
+      } catch (e) {
+        alert("Ошибка при сохранении: " + e.message);
+      }
+    }
+
+    function loadDashboardData() {
+      db.ref('terminals').on('value', snap => {
+        const el = document.getElementById('terminals-list');
+        el.innerHTML = "";
+        if (!snap.exists()) return el.innerHTML = `<small style="color:var(--muted)">Нет активных терминалов</small>`;
+        
+        snap.forEach(child => {
+          const t = child.val();
+          const isBlocked = t.status === 'blocked';
+          el.innerHTML += `
+            <div class="list-item">
+              <div>
+                <strong>${t.terminalId}</strong><br>
+                <small style="color:${isBlocked ? 'var(--danger)' : 'var(--accent)'}">${t.status || 'active'}</small>
+              </div>
+              <button class="btn ${isBlocked ? 'btn-main' : 'btn-danger'}" onclick="toggleTerminal('${t.terminalId}', '${t.status}')">
+                ${isBlocked ? 'Разблокировать' : 'Заблокировать'}
+              </button>
             </div>
-            <button class="btn ${c.isFrozen ? 'btn-main' : 'btn-danger'}" onclick="toggleCard('${c.cardNumber}', ${c.isFrozen})">
-              ${c.isFrozen ? 'Разморозить' : 'Заморозить'}
-            </button>
-          </div>
-        `;
+          `;
+        });
+      }, err => {
+        document.getElementById('terminals-list').innerHTML = `<small style="color:var(--danger)">Ошибка загрузки терминалов</small>`;
       });
-    });
+
+      db.ref('cards').on('value', snap => {
+        const el = document.getElementById('cards-list');
+        el.innerHTML = "";
+        
+        if (!snap.exists()) {
+          el.innerHTML = `<small style="color:var(--muted)">Нет созданных карт</small>`;
+          return;
+        }
+
+        const cardsData = snap.val();
+        Object.keys(cardsData).forEach(cardKey => {
+          const c = cardsData[cardKey];
+          const isFrozen = !!c.isFrozen;
+          el.innerHTML += `
+            <div class="list-item">
+              <div>
+                <strong>${c.cardNumber || cardKey}</strong><br>
+                <small style="color:var(--muted)">Баланс: ${parseFloat(c.balance || 0).toFixed(2)} EGP</small>
+              </div>
+              <button class="btn ${isFrozen ? 'btn-main' : 'btn-danger'}" onclick="toggleCard('${c.cardNumber || cardKey}', ${isFrozen})">
+                ${isFrozen ? 'Разморозить' : 'Заморозить'}
+              </button>
+            </div>
+          `;
+        });
+      }, err => {
+        document.getElementById('cards-list').innerHTML = `<small style="color:var(--danger)">Ошибка загрузки карт: ${err.message}</small>`;
+      });
+    }
 
     async function toggleTerminal(id, currentStatus) {
       const newStatus = currentStatus === 'blocked' ? 'active' : 'blocked';
