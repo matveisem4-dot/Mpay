@@ -21,18 +21,18 @@
       --text: #f1f5f9;
       --muted: #64748b;
       --danger: #ff3366;
-      --warning: #ffb703;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
     body { background: var(--bg); color: var(--text); min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-image: radial-gradient(circle at 50% 10%, rgba(0, 255, 157, 0.12), transparent 60%); }
     
+    /* SPLASH OVERLAY WITH FIXED SVG */
     .splash-screen {
       position: fixed; inset: 0; background: #050811; z-index: 99999;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       animation: splashFadeOut 0.4s ease-out forwards 3.2s;
     }
     .splash-brand { display: flex; align-items: center; justify-content: center; position: relative; }
-    .splash-svg { width: 110px; height: 110px; flex-shrink: 0; overflow: visible; }
+    .splash-svg { width: 120px; height: 120px; flex-shrink: 0; overflow: visible; }
     
     .splash-circle {
       fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round;
@@ -55,44 +55,34 @@
 
     @keyframes drawCheck { to { stroke-dashoffset: 0; } }
     @keyframes drawCircle { to { stroke-dashoffset: 0; } }
-    @keyframes fadePay {
-      0% { opacity: 1; max-width: 120px; transform: translateX(0); }
-      100% { opacity: 0; max-width: 0px; transform: translateX(-10px); margin: 0; visibility: hidden; }
-    }
-    @keyframes fadeSub {
-      0% { opacity: 0.8; transform: translateY(0); }
-      100% { opacity: 0; transform: translateY(5px); visibility: hidden; }
-    }
+    @keyframes fadePay { 0% { opacity: 1; max-width: 120px; } 100% { opacity: 0; max-width: 0px; visibility: hidden; } }
+    @keyframes fadeSub { 0% { opacity: 0.8; } 100% { opacity: 0; visibility: hidden; } }
     @keyframes splashFadeOut { to { opacity: 0; visibility: hidden; pointer-events: none; } }
 
     .app-card { width: 100%; max-width: 410px; min-height: 720px; background: var(--panel); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 32px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8); display: flex; flex-direction: column; overflow: hidden; position: relative; }
     .header { padding: 20px 22px; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); }
     .brand { font-weight: 800; font-size: 1.15rem; color: var(--accent); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
-    .status-pill { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid transparent; }
-    .st-active { background: rgba(0, 255, 157, 0.12); color: var(--accent); border-color: rgba(0, 255, 157, 0.3); }
-    .st-blocked { background: rgba(255, 51, 102, 0.12); color: var(--danger); border-color: rgba(255, 51, 102, 0.3); }
+    .status-pill { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+    .st-active { background: rgba(0, 255, 157, 0.12); color: var(--accent); }
 
     .screen { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 14px; justify-content: center; overflow-y: auto; }
     .hidden { display: none !important; }
 
-    .pos-hero { position: relative; width: 140px; height: 140px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; }
-    .pos-circle { position: absolute; inset: 0; border-radius: 50%; border: 2px dashed rgba(0, 255, 157, 0.3); animation: spin 15s linear infinite; }
-    .pos-pulse { position: absolute; inset: 15px; border-radius: 50%; background: radial-gradient(circle, rgba(0, 255, 157, 0.25) 0%, transparent 70%); animation: pulse 2.5s ease-in-out infinite; }
-    .pos-card-visual { width: 90px; height: 56px; background: linear-gradient(135deg, #0f2b20, #05140e); border: 1px solid var(--accent); border-radius: 10px; display: flex; flex-direction: column; justify-content: space-between; padding: 8px; box-shadow: 0 10px 25px var(--accent-glow); position: relative; z-index: 2; transform: rotate(-6deg); }
-    .chip { width: 16px; height: 12px; background: #ffd700; border-radius: 3px; }
-    
-    @keyframes spin { 100% { transform: rotate(360deg); } }
-    @keyframes pulse { 0%, 100% { transform: scale(0.9); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } }
+    /* SBERBANK-STYLE AD SCREENSAVER */
+    .screensaver {
+      position: absolute; inset: 0; background: radial-gradient(circle at center, #0f2b20 0%, #050811 100%);
+      z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 30px; text-align: center; cursor: pointer; animation: fadeIn 0.5s ease;
+    }
+    .ad-card { background: rgba(0, 255, 157, 0.05); border: 1px solid var(--border); border-radius: 24px; padding: 30px 20px; width: 100%; box-shadow: 0 20px 50px rgba(0,255,157,0.15); }
+    .ad-icon { font-size: 3.5rem; color: var(--accent); margin-bottom: 20px; animation: bounce 2s infinite; }
+    .ad-title { font-size: 1.4rem; font-weight: 800; color: #fff; margin-bottom: 10px; }
+    .ad-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.4; }
 
-    .nfc-anim-container { position: relative; width: 180px; height: 180px; margin: 15px auto; display: flex; align-items: center; justify-content: center; }
-    .nfc-wave { position: absolute; inset: 0; border: 2px solid var(--accent); border-radius: 50%; opacity: 0; animation: wave-pulse 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
-    .nfc-wave:nth-child(2) { animation-delay: 0.6s; }
-    .nfc-wave:nth-child(3) { animation-delay: 1.2s; }
-    .qr-holder { position: relative; z-index: 5; background: #fff; padding: 12px; border-radius: 20px; box-shadow: 0 0 30px var(--accent-glow); }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    @keyframes wave-pulse { 0% { transform: scale(0.6); opacity: 0.8; } 100% { transform: scale(1.4); opacity: 0; } }
-
-    .btn { width: 100%; padding: 14px; border-radius: 16px; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s ease; }
+    .btn { width: 100%; padding: 14px; border-radius: 16px; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
     .btn-main { background: linear-gradient(135deg, #00ff9d, #00b871); color: #000; box-shadow: 0 4px 20px var(--accent-glow); }
     .btn-glass { background: rgba(255, 255, 255, 0.04); color: #fff; border: 1px solid rgba(255,255,255,0.08); }
     .btn-danger { background: rgba(255, 51, 102, 0.15); color: var(--danger); border: 1px solid rgba(255, 51, 102, 0.3); }
@@ -100,30 +90,27 @@
     .input-group { width: 100%; margin-bottom: 6px; }
     .input-group label { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; display: block; text-transform: uppercase; }
     .input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; color: #fff; font-size: 0.95rem; outline: none; text-align: center; }
-    .input:focus { border-color: var(--accent); }
 
     .display-amt { text-align: center; font-size: 2.8rem; font-weight: 800; color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); margin: 5px 0; }
     .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 auto; width: 100%; }
     .key { height: 52px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; color: #fff; font-size: 1.3rem; font-weight: 700; cursor: pointer; }
-    .key:active { background: rgba(255,255,255,0.15); }
 
-    #map { width: 100%; height: 220px; border-radius: 18px; border: 1px solid var(--border); margin-bottom: 10px; }
+    .qr-holder { background: #fff; padding: 12px; border-radius: 20px; box-shadow: 0 0 30px var(--accent-glow); margin: 15px auto; }
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 99; padding: 20px; }
     .modal-card { background: #0c1424; border: 1px solid var(--border); border-radius: 24px; padding: 24px; width: 100%; max-width: 320px; text-align: center; }
     .pin-input { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; font-size: 1.6rem; text-align: center; letter-spacing: 8px; margin: 15px 0; outline: none; }
-
-    .status-msg { font-size: 0.8rem; text-align: center; margin-top: 8px; min-height: 20px; }
+    .status-msg { font-size: 0.8rem; text-align: center; margin-top: 8px; }
   </style>
 </head>
-<body>
+<body onclick="resetIdleTimer()" onmousemove="resetIdleTimer()" onkeydown="resetIdleTimer()">
 
-  <!-- SPLASH OVERLAY -->
+  <!-- SPLASH OVERLAY WITH FIXED SVG -->
   <div id="splash" class="splash-screen">
     <div class="splash-brand">
-      <svg class="splash-svg" viewBox="0 0 100 100">
-        <circle class="splash-circle" cx="50" cy="50" r="42" />
-        <text x="22" y="66" font-family="'Segoe UI', sans-serif" font-size="46" font-weight="900" fill="var(--accent)">M</text>
-        <path class="splash-check" d="M 50 52 L 62 64 L 82 38" />
+      <svg class="splash-svg" viewBox="0 0 120 120">
+        <circle class="splash-circle" cx="60" cy="60" r="50" />
+        <text x="28" y="72" font-family="'Segoe UI', sans-serif" font-size="42" font-weight="900" fill="var(--accent)">M</text>
+        <path class="splash-check" d="M 68 62 L 78 72 L 98 46" />
       </svg>
       <div class="splash-pay">Pay</div>
     </div>
@@ -136,77 +123,59 @@
       <div id="term-status" class="status-pill st-active">ONLINE</div>
     </div>
 
+    <!-- SCREENSAVER OVERLAY -->
+    <div id="screensaver" class="screensaver hidden" onclick="dismissScreensaver()">
+      <div class="ad-card">
+        <div id="ad-icon" class="ad-icon"><i class="fa-solid fa-wifi"></i></div>
+        <div id="ad-title" class="ad-title">Бесконтактная Оплата</div>
+        <div id="ad-desc" class="ad-desc">Прикладывайте смартфон или карту к POS-терминалу M Pay для моментального расчета</div>
+      </div>
+      <p style="color: var(--muted); font-size: 0.75rem; margin-top: 25px;">Коснитесь экрана для начала работы</p>
+    </div>
+
     <!-- MAIN IDLE SCREEN -->
     <main id="sc-idle" class="screen">
-      <div class="pos-hero">
-        <div class="pos-circle"></div>
-        <div class="pos-pulse"></div>
-        <div class="pos-card-visual">
-          <div class="chip"></div>
-          <i class="fa-solid fa-wifi" style="align-self: flex-end; font-size: 0.8rem; color: var(--accent);"></i>
-        </div>
-      </div>
-
-      <div style="text-align: center; margin-bottom: 10px;">
+      <div style="text-align: center; margin-bottom: 15px;">
         <h2 style="font-size: 1.3rem;">Терминал Готов</h2>
-        <p style="color: var(--muted); font-size: 0.8rem; margin-top: 4px;">Прием платежей, пополнение и эмиссия</p>
+        <p style="color: var(--muted); font-size: 0.8rem; margin-top: 4px;">Выберите режим работы</p>
       </div>
 
       <button onclick="goto('sc-amount')" class="btn btn-main"><i class="fa-solid fa-calculator"></i> Оплатить покупку</button>
       <button onclick="goto('sc-topup')" class="btn btn-glass"><i class="fa-solid fa-wallet"></i> Пополнить карту</button>
       <button onclick="goto('sc-issue')" class="btn btn-glass"><i class="fa-solid fa-credit-card"></i> Выпустить карту клиенту</button>
-      <button onclick="goto('sc-map')" class="btn btn-glass"><i class="fa-solid fa-location-dot"></i> Позиция терминала (GPS)</button>
     </main>
 
     <!-- TOP-UP CARD SCREEN -->
     <main id="sc-topup" class="screen hidden">
-      <div style="text-align: center; margin-bottom: 10px;">
-        <h3 style="color: var(--accent);">Пополнение Карты</h3>
-        <p style="color: var(--muted); font-size: 0.8rem;">Внесите сумму для пополнения баланса</p>
-      </div>
-
+      <h3 style="color: var(--accent); text-align: center;">Пополнение Карты</h3>
       <div class="input-group">
         <label>Номер карты</label>
         <input type="text" id="topup-card-num" class="input" placeholder="4400XXXXXXXXXXXX" />
       </div>
-
-      <button onclick="scanNfcForTopup()" class="btn btn-glass" style="margin-bottom: 10px;"><i class="fa-solid fa-wifi"></i> Считать через NFC</button>
-
+      <button onclick="scanNfcForTopup()" class="btn btn-glass"><i class="fa-solid fa-wifi"></i> Считать через NFC</button>
       <div class="input-group">
         <label>Сумма пополнения (EGP)</label>
-        <input type="number" id="topup-amount" class="input" placeholder="0.00" min="1" />
+        <input type="number" id="topup-amount" class="input" placeholder="0.00" />
       </div>
-
-      <button onclick="processTopup()" class="btn btn-main" style="margin-top: 6px;"><i class="fa-solid fa-circle-dollar-to-slot"></i> Внести средства</button>
-      
+      <button onclick="processTopup()" class="btn btn-main"><i class="fa-solid fa-circle-dollar-to-slot"></i> Внести средства</button>
       <div id="topup-status" class="status-msg"></div>
-
-      <button onclick="goto('sc-idle')" class="btn btn-danger" style="margin-top: 10px;">Назад</button>
+      <button onclick="goto('sc-idle')" class="btn btn-danger">Назад</button>
     </main>
 
     <!-- ISSUE NEW CARD SCREEN -->
     <main id="sc-issue" class="screen hidden">
-      <div style="text-align: center; margin-bottom: 10px;">
-        <h3 style="color: var(--accent);">Эмиссия Карты</h3>
-        <p style="color: var(--muted); font-size: 0.8rem;">Регистрация карт-счета на терминале</p>
-      </div>
-
+      <h3 style="color: var(--accent); text-align: center;">Эмиссия Карты</h3>
       <div class="input-group">
-        <label>PIN Код карт-счета (4 цифры)</label>
+        <label>PIN Код карты (4 цифры)</label>
         <input type="password" id="pos-new-pin" class="input" maxlength="4" placeholder="••••" />
       </div>
-
       <div class="input-group">
         <label>Начальный баланс (EGP)</label>
         <input type="number" id="pos-new-bal" class="input" value="100" />
       </div>
-
-      <button onclick="issueCardFromPOS()" class="btn btn-main" style="margin-top: 6px;"><i class="fa-solid fa-plus-circle"></i> 1. Создать карту в базе</button>
-      <button onclick="writeToBlankNFC()" class="btn btn-glass"><i class="fa-solid fa-file-pen"></i> 2. Записать на NFC-метку</button>
-      
+      <button onclick="issueCardFromPOS()" class="btn btn-main"><i class="fa-solid fa-plus-circle"></i> Создать карту</button>
       <div id="issue-status" class="status-msg"></div>
-
-      <button onclick="goto('sc-idle')" class="btn btn-danger" style="margin-top: 10px;">Отмена</button>
+      <button onclick="goto('sc-idle')" class="btn btn-danger">Отмена</button>
     </main>
 
     <!-- KEYPAD AMOUNT -->
@@ -235,37 +204,24 @@
       <div style="color: var(--muted);">К оплате</div>
       <div class="display-amt" style="font-size: 2.2rem;"><span id="pay-target">0</span> EGP</div>
 
-      <div class="nfc-anim-container">
-        <div class="nfc-wave"></div>
-        <div class="nfc-wave"></div>
-        <div class="nfc-wave"></div>
-        <div class="qr-holder">
-          <div id="qrcode"></div>
-        </div>
+      <div class="qr-holder">
+        <div id="qrcode"></div>
       </div>
 
-      <p id="nfc-status-txt" style="color: var(--accent); font-size: 0.85rem; margin-top: 10px;">
-        <i class="fa-solid fa-spinner fa-spin"></i> Ожидание NFC карты или QR оплаты...
+      <p id="nfc-status-txt" style="color: var(--accent); font-size: 0.85rem;">
+        <i class="fa-solid fa-spinner fa-spin"></i> Ожидание NFC или QR оплаты...
       </p>
 
       <button onclick="cancelPay()" class="btn btn-danger" style="margin-top: auto;">Отмена операции</button>
     </main>
-
-    <!-- MAP SCREEN -->
-    <main id="sc-map" class="screen hidden">
-      <h3 style="text-align: center; margin-bottom: 5px;">Локация ТТ</h3>
-      <div id="map"></div>
-      <button onclick="locate()" class="btn btn-glass"><i class="fa-solid fa-crosshairs"></i> Определить GPS</button>
-      <button onclick="saveStoreLoc()" class="btn btn-main"><i class="fa-solid fa-cloud-arrow-up"></i> Сохранить позицию</button>
-      <button onclick="goto('sc-idle')" class="btn btn-danger">Назад</button>
-    </main>
   </div>
 
+  <!-- PIN CONFIRM MODAL FOR PAYMENTS > 10 EGP -->
   <div id="pin-modal" class="modal hidden">
     <div class="modal-card">
       <i class="fa-solid fa-shield-halved" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 10px;"></i>
       <h3>Безопасная оплата</h3>
-      <p style="color: var(--muted); font-size: 0.8rem; margin-top: 4px;">Сумма более 10 EGP. Введите PIN</p>
+      <p style="color: var(--muted); font-size: 0.8rem; margin-top: 4px;">Сумма более 10 EGP. Введите PIN карты</p>
       <input type="password" id="pin-field" class="pin-input" maxlength="4" placeholder="••••" />
       <button onclick="verifyPinAndPay()" class="btn btn-main">Подтвердить</button>
       <button onclick="closePinModal()" class="btn btn-danger" style="margin-top: 8px;">Отмена</button>
@@ -280,26 +236,46 @@
     let TERM_ID = localStorage.getItem('mpay_terminal_id') || ("TERM_" + Math.floor(1000 + Math.random() * 9000));
     localStorage.setItem('mpay_terminal_id', TERM_ID);
     
-    let curAmount = 0, pendingCard = null, mapObj = null, markerObj = null, lastCreatedCard = null, ndefInstance = null;
-    let paymentListenerRef = null;
+    let curAmount = 0, pendingCard = null, paymentListenerRef = null;
+    let idleTimer = null, adIndex = 0;
 
-    db.ref(`terminals/${TERM_ID}`).on('value', snap => {
-      const data = snap.val();
-      const stEl = document.getElementById('term-status');
-      if (data && data.status === 'blocked') {
-        stEl.textContent = `БЛОКИРОВАН`;
-        stEl.className = "status-pill st-blocked";
-      } else {
-        stEl.textContent = `${TERM_ID}`;
-        stEl.className = "status-pill st-active";
-        if (!data) db.ref(`terminals/${TERM_ID}`).set({ terminalId: TERM_ID, status: 'active', updatedAt: Date.now() });
-      }
-    });
+    const ads = [
+      { icon: 'fa-wifi', title: 'Бесконтактный расчет', desc: 'Прикладывайте смартфон или карту к POS-терминалу M Pay' },
+      { icon: 'fa-qrcode', title: 'Оплата по QR-коду', desc: 'Сканируйте QR-код через приложение M Pay Client' },
+      { icon: 'fa-shield-halved', title: 'Безопасность покупок', desc: 'Защита каждой операции PIN-кодом и мгновенное подтверждение' }
+    ];
+
+    function resetIdleTimer() {
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        if (document.getElementById('sc-idle').classList.contains('hidden') === false) {
+          showScreensaver();
+        }
+      }, 15000); // 15 seconds idle timeout
+    }
+
+    function showScreensaver() {
+      document.getElementById('screensaver').classList.remove('hidden');
+      rotateAds();
+    }
+
+    function dismissScreensaver() {
+      document.getElementById('screensaver').classList.add('hidden');
+      resetIdleTimer();
+    }
+
+    function rotateAds() {
+      const ad = ads[adIndex];
+      document.getElementById('ad-icon').innerHTML = `<i class="fa-solid ${ad.icon}"></i>`;
+      document.getElementById('ad-title').textContent = ad.title;
+      document.getElementById('ad-desc').textContent = ad.desc;
+      adIndex = (adIndex + 1) % ads.length;
+    }
 
     function goto(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
       document.getElementById(id).classList.remove('hidden');
-      if (id === 'sc-map') setTimeout(initMap, 200);
+      resetIdleTimer();
     }
 
     function press(v) {
@@ -314,64 +290,38 @@
       const amt = parseFloat(document.getElementById('topup-amount').value) || 0;
       const statusEl = document.getElementById('topup-status');
 
-      if (!cardNum || amt <= 0) {
-        statusEl.innerHTML = `<span style="color: var(--danger)">Укажите номер карты и сумму!</span>`;
-        return;
-      }
+      if (!cardNum || amt <= 0) return statusEl.innerHTML = `<span style="color: var(--danger)">Укажите данные!</span>`;
 
       try {
         const snap = await db.ref(`cards/${cardNum}`).once('value');
-        if (!snap.exists()) {
-          statusEl.innerHTML = `<span style="color: var(--danger)">Карта ${cardNum} не найдена!</span>`;
-          return;
-        }
-
+        if (!snap.exists()) return statusEl.innerHTML = `<span style="color: var(--danger)">Карта не найдена!</span>`;
         const card = snap.val();
-        if (card.isFrozen) {
-          statusEl.innerHTML = `<span style="color: var(--danger)">Карта заблокирована.</span>`;
-          return;
-        }
 
         const newBal = (parseFloat(card.balance) || 0) + amt;
         await db.ref(`cards/${cardNum}`).update({ balance: newBal });
-        await db.ref(`transactions/${Date.now()}`).set({ termId: TERM_ID, card: cardNum, amt: amt, type: 'topup', ts: Date.now() });
-
-        statusEl.innerHTML = `<span style="color: var(--accent)"><i class="fa-solid fa-circle-check"></i> Баланс пополнен! Новый остаток: ${newBal} EGP</span>`;
-        document.getElementById('topup-amount').value = '';
+        statusEl.innerHTML = `<span style="color: var(--accent)">Баланс пополнен! Новый баланс: ${newBal} EGP</span>`;
       } catch (e) {
         statusEl.innerHTML = `<span style="color: var(--danger)">Ошибка: ${e.message}</span>`;
       }
     }
 
     async function scanNfcForTopup() {
-      const statusEl = document.getElementById('topup-status');
-      if (!('NDEFReader' in window)) {
-        statusEl.innerHTML = `<span style="color: var(--warning)">Web NFC не поддерживается</span>`;
-        return;
-      }
-
+      if (!('NDEFReader' in window)) return alert("Web NFC не поддерживается браузером");
       try {
-        statusEl.innerHTML = `<span style="color: var(--warning)"><i class="fa-solid fa-spinner fa-spin"></i> Поднесите NFC карту...</span>`;
         const ndef = new NDEFReader();
         await ndef.scan();
         ndef.addEventListener("reading", ({ message }) => {
           for (const record of message.records) {
             if (record.recordType === "text") {
-              const textDecoder = new TextDecoder(record.encoding || 'utf-8');
-              const text = textDecoder.decode(record.data);
+              const text = new TextDecoder().decode(record.data);
               if (text.startsWith("MPAY:")) {
-                const parts = text.split(":");
-                document.getElementById('topup-card-num').value = parts[1];
-                statusEl.innerHTML = `<span style="color: var(--accent)"><i class="fa-solid fa-circle-check"></i> Карта ${parts[1]} считана!</span>`;
+                document.getElementById('topup-card-num').value = text.split(":")[1];
                 return;
               }
             }
           }
-          statusEl.innerHTML = `<span style="color: var(--danger)">Не удалось прочитать карту</span>`;
         }, { once: true });
-      } catch(e) {
-        statusEl.innerHTML = `<span style="color: var(--danger)">Ошибка: ${e.message}</span>`;
-      }
+      } catch(e) { alert("Ошибка NFC: " + e.message); }
     }
 
     async function issueCardFromPOS() {
@@ -379,52 +329,20 @@
       const bal = parseFloat(document.getElementById('pos-new-bal').value) || 0;
       const statusEl = document.getElementById('issue-status');
 
-      if (pin.length !== 4 || isNaN(parseInt(pin))) {
-        statusEl.innerHTML = `<span style="color: var(--danger)">PIN должен быть из 4 цифр!</span>`;
-        return;
-      }
+      if (pin.length !== 4) return statusEl.innerHTML = `<span style="color: var(--danger)">PIN должен состоять из 4 цифр!</span>`;
 
       const cardNum = "4400" + Math.floor(100000000000 + Math.random() * 900000000000);
-      const cardData = { cardNumber: cardNum, pin: pin, balance: bal, isFrozen: false, isAdminCard: false, createdAt: Date.now() };
-
       try {
-        await db.ref(`cards/${cardNum}`).set(cardData);
-        lastCreatedCard = cardData;
-        statusEl.innerHTML = `<span style="color: var(--accent)"><i class="fa-solid fa-circle-check"></i> Карта ${cardNum} создана!</span>`;
-      } catch(e) {
-        statusEl.innerHTML = `<span style="color: var(--danger)">Ошибка базы: ${e.message}</span>`;
-      }
-    }
-
-    async function writeToBlankNFC() {
-      const statusEl = document.getElementById('issue-status');
-      if (!lastCreatedCard) {
-        statusEl.innerHTML = `<span style="color: var(--warning)">Сначала создайте карту!</span>`;
-        return;
-      }
-      if (!('NDEFReader' in window)) {
-        statusEl.innerHTML = `<span style="color: var(--warning)">Web NFC не поддерживается</span>`;
-        return;
-      }
-
-      try {
-        statusEl.innerHTML = `<span style="color: var(--warning)"><i class="fa-solid fa-spinner fa-spin"></i> Поднесите чистую NFC-метку...</span>`;
-        const ndef = new NDEFReader();
-        await ndef.write({ records: [{ recordType: "text", data: `MPAY:${lastCreatedCard.cardNumber}:${lastCreatedCard.pin}` }] });
-        statusEl.innerHTML = `<span style="color: var(--accent)"><i class="fa-solid fa-circle-check"></i> Данные записаны на NFC-метку!</span>`;
-      } catch (error) {
-        statusEl.innerHTML = `<span style="color: var(--danger)">Ошибка записи: ${error.message}</span>`;
-      }
+        await db.ref(`cards/${cardNum}`).set({ cardNumber: cardNum, pin: pin, balance: bal, isFrozen: false, createdAt: Date.now() });
+        statusEl.innerHTML = `<span style="color: var(--accent)">Карта ${cardNum} успешно создана!</span>`;
+      } catch(e) { statusEl.innerHTML = `<span style="color: var(--danger)">Ошибка: ${e.message}</span>`; }
     }
 
     async function startPay() {
-      if (curAmount <= 0) return alert("Укажите сумму!");
-      const snap = await db.ref(`terminals/${TERM_ID}`).once('value');
-      if (snap.val() && snap.val().status === 'blocked') return alert("Терминал заблокирован!");
-      
+      if (curAmount <= 0) return alert("Введите сумму!");
       document.getElementById('pay-target').textContent = curAmount;
       document.getElementById('qrcode').innerHTML = "";
-      new QRCode(document.getElementById('qrcode'), { text: `mpay://pay?termId=${TERM_ID}&amt=${curAmount}`, width: 140, height: 140 });
+      new QRCode(document.getElementById('qrcode'), { text: `mpay://pay?termId=${TERM_ID}&amt=${curAmount}`, width: 150, height: 150 });
       
       goto('sc-pay');
       listenForRemoteQrPayment();
@@ -438,7 +356,7 @@
         const tx = snap.val();
         if (tx && tx.ts >= startTs && tx.status === 'success' && tx.amt === curAmount) {
           paymentListenerRef.off();
-          alert(`Оплата ${tx.amt} EGP прошла по QR-коду!\nКарта: ${tx.card}`);
+          alert(`Оплата ${tx.amt} EGP прошла по QR!`);
           resetPayment();
         }
       });
@@ -456,37 +374,24 @@
     }
 
     async function initNfcScanner() {
-      const statusTxt = document.getElementById('nfc-status-txt');
       if ('NDEFReader' in window) {
         try {
-          if (!ndefInstance) {
-            ndefInstance = new NDEFReader();
-            await ndefInstance.scan();
-            ndefInstance.addEventListener("reading", ({ serialNumber, message }) => {
-              let payloadText = "";
-              for (const record of message.records) {
-                if (record.recordType === "text") {
-                  const textDecoder = new TextDecoder(record.encoding || 'utf-8');
-                  payloadText = textDecoder.decode(record.data);
-                }
+          const ndef = new NDEFReader();
+          await ndef.scan();
+          ndef.addEventListener("reading", ({ message }) => {
+            for (const record of message.records) {
+              if (record.recordType === "text") {
+                const text = new TextDecoder().decode(record.data);
+                processNfcTap(text);
               }
-              processNfcTap(serialNumber, payloadText);
-            });
-          }
-          statusTxt.innerHTML = `<i class="fa-solid fa-wifi fa-spin"></i> Поднесите NFC карту или отсканируйте QR...`;
-        } catch (e) {
-          statusTxt.innerHTML = `<i class="fa-solid fa-qrcode"></i> Отсканируйте QR-код в приложении клиента`;
-        }
-      } else {
-        statusTxt.innerHTML = `<i class="fa-solid fa-qrcode"></i> Отсканируйте QR-код в приложении клиента`;
+            }
+          });
+        } catch (e) {}
       }
     }
 
-    async function processNfcTap(uid, payloadText) {
+    async function processNfcTap(payloadText) {
       if (curAmount <= 0) return;
-      const cleanUid = uid ? uid.replace(/[^a-zA-Z0-9]/g, '_') : '';
-      let card = null;
-
       if (payloadText && payloadText.startsWith("MPAY:")) {
         const parts = payloadText.split(":");
         const cardNum = parts[1];
@@ -494,51 +399,28 @@
 
         const cSnap = await db.ref(`cards/${cardNum}`).once('value');
         if (cSnap.exists()) {
-          card = cSnap.val();
-          if (cleanUid) await db.ref(`cards/${cardNum}/uids/${cleanUid}`).set(true);
-          if (card.isFrozen) return alert("Карта заблокирована!");
+          const card = cSnap.val();
+          if (card.isFrozen) return alert("Карта заморожена!");
 
+          pendingCard = card;
+          // PIN CHECK MANDATORY IF AMOUNT > 10 EGP
           if (curAmount > 10) {
-            if (payloadPin && payloadPin === card.pin) {
-              commitDebit(card);
-              return;
-            } else {
-              pendingCard = card;
-              document.getElementById('pin-modal').classList.remove('hidden');
-              return;
-            }
+            document.getElementById('pin-modal').classList.remove('hidden');
           } else {
             commitDebit(card);
-            return;
           }
         }
-      }
-
-      const allCardsSnap = await db.ref('cards').once('value');
-      if (allCardsSnap.exists()) {
-        allCardsSnap.forEach(child => {
-          const c = child.val();
-          if (c.nfcUid === uid || (c.uids && cleanUid && c.uids[cleanUid])) card = c;
-        });
-      }
-
-      if (!card) return alert("Неопознанная NFC метка!");
-      if (card.isFrozen) return alert("Карта заблокирована!");
-
-      pendingCard = card;
-      if (curAmount > 10) {
-        document.getElementById('pin-modal').classList.remove('hidden');
-      } else {
-        commitDebit(card);
       }
     }
 
     function verifyPinAndPay() {
-      const pin = document.getElementById('pin-field').value;
-      if (pin === pendingCard.pin) {
+      const pin = document.getElementById('pin-field').value.trim();
+      if (pendingCard && pin === pendingCard.pin) {
         closePinModal();
         commitDebit(pendingCard);
-      } else alert("Неверный PIN код!");
+      } else {
+        alert("Неверный PIN код!");
+      }
     }
 
     function closePinModal() {
@@ -547,8 +429,8 @@
     }
 
     async function commitDebit(card) {
-      if (!card.isAdminCard && card.balance < curAmount) return alert("Недостаточно средств на карте!");
-      const newBal = card.isAdminCard ? card.balance : (card.balance - curAmount);
+      if (card.balance < curAmount) return alert("Недостаточно средств на карте!");
+      const newBal = card.balance - curAmount;
       
       await db.ref(`cards/${card.cardNumber}`).update({ balance: newBal });
       await db.ref(`transactions/${Date.now()}`).set({ termId: TERM_ID, card: card.cardNumber, amt: curAmount, type: 'nfc_payment', status: 'success', ts: Date.now() });
@@ -557,27 +439,7 @@
       cancelPay();
     }
 
-    function initMap() {
-      if (!mapObj) {
-        mapObj = L.map('map').setView([30.0444, 31.2357], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapObj);
-        markerObj = L.marker([30.0444, 31.2357], { draggable: true }).addTo(mapObj);
-      }
-    }
-    function locate() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(p => {
-          const pos = [p.coords.latitude, p.coords.longitude];
-          mapObj.setView(pos, 15);
-          markerObj.setLatLng(pos);
-        });
-      }
-    }
-    function saveStoreLoc() {
-      const pos = markerObj.getLatLng();
-      db.ref(`terminals/${TERM_ID}`).update({ lat: pos.lat, lng: pos.lng, updatedAt: Date.now() });
-      alert("Локация сохранена!");
-    }
+    resetIdleTimer();
   </script>
 </body>
 </html>
