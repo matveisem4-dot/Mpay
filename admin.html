@@ -2,72 +2,155 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>MPay Admin Panel</title>
-  <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #130E26; color: #fff; margin: 0; padding: 20px; }
-    .container { max-width: 900px; margin: 0 auto; }
-    .card { background: #1F1735; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-    h2, h3 { color: #A855F7; margin-top: 0; }
-    input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #332754; background: #130E26; color: #fff; box-sizing: border-box; }
-    button { background: #A855F7; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-    button:hover { background: #9333EA; }
-    button.btn-danger { background: #DC2626; }
-    button.btn-danger:hover { background: #B91C1C; }
-    button.btn-warning { background: #D97706; }
-    .row { display: flex; gap: 10px; }
-    .item-list { display: flex; flex-direction: column; gap: 10px; }
-    .item-card { background: #2A1F45; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .hidden { display: none; }
-  </style>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mPay Admin Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background: linear-gradient(135deg, #0F0A1C 0%, #130E26 100%); color: #F3F4F6; min-height: 100vh; padding: 24px; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    
+    .card {
+      background: rgba(31, 23, 53, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(168, 85, 247, 0.2);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    h2, h3 { color: #FFF; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    h2 span, h3 span { color: #A855F7; }
+
+    .input-group { margin-bottom: 14px; }
+    label { display: block; font-size: 12px; color: #9CA3AF; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      background: #130E26;
+      border: 1px solid #332754;
+      border-radius: 10px;
+      color: #FFF;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    input:focus { border-color: #A855F7; box-shadow: 0 0 12px rgba(168, 85, 247, 0.4); }
+
+    .row { display: flex; gap: 12px; }
+    .row .input-group { flex: 1; }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(90deg, #A855F7 0%, #7C3AED 100%);
+      border: none;
+      border-radius: 10px;
+      color: #FFF;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5); }
+    .btn-danger { background: linear-gradient(90deg, #EF4444 0%, #DC2626 100%); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+    .btn-warning { background: linear-gradient(90deg, #F59E0B 0%, #D97706 100%); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); }
+    .btn-sm { width: auto; padding: 8px 14px; font-size: 13px; }
+
+    .item-list { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+    .item-card {
+      background: #181230;
+      border: 1px solid #2E234D;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-active { background: rgba(16, 185, 129, 0.2); color: #10B981; }
+    .badge-blocked { background: rgba(239, 68, 68, 0.2); color: #EF4444; }
+    .hidden { display: none !important; }
+  </style>
 </head>
 <body>
   <div class="container">
     
-    <!-- Авторизация -->
-    <div id="auth-section" class="card">
-      <h2>Авторизация Admin</h2>
-      <input type="email" id="email" placeholder="Email">
-      <input type="password" id="password" placeholder="Пароль">
-      <button onclick="login()">Войти</button>
-      <p id="auth-error" style="color: #EF4444;"></p>
+    <!-- Секция Авторизации -->
+    <div id="auth-section" class="card" style="max-width: 420px; margin: 80px auto;">
+      <h2><span>mPay</span> Admin Auth</h2>
+      <div class="input-group">
+        <label>Email</label>
+        <input type="email" id="email" placeholder="admin@mpay.com">
+      </div>
+      <div class="input-group">
+        <label>Пароль</label>
+        <input type="password" id="password" placeholder="••••••••">
+      </div>
+      <button class="btn" onclick="login()">Войти в Панель</button>
+      <p id="auth-error" style="color: #EF4444; font-size: 13px; margin-top: 10px; text-align: center;"></p>
     </div>
 
-    <!-- Основной интерфейс -->
+    <!-- Главный Интерфейс -->
     <div id="main-section" class="hidden">
       <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
-        <h2>🔑 MPay Admin Panel</h2>
-        <button onclick="logout()" style="width: auto; padding: 8px 16px;">Выйти</button>
+        <h2>⚡ <span>mPay</span> Control Center</h2>
+        <button class="btn btn-danger btn-sm" onclick="logout()">Выйти</button>
       </div>
 
-      <!-- Управление Терминалами -->
+      <!-- Терминалы -->
       <div class="card">
-        <h3>Управление POS-Терминалами</h3>
+        <h3>🖥 POS-Терминалы</h3>
         <div class="item-list" id="terminals-list"></div>
       </div>
 
-      <!-- Управление Картами -->
+      <!-- Карты -->
       <div class="card">
-        <h3>Управление Картами</h3>
+        <h3>💳 Карты пользователей</h3>
         <div class="item-list" id="cards-list"></div>
       </div>
 
-      <!-- Управление Магазинами для GPS -->
+      <!-- Добавление GPS Магазинов -->
       <div class="card">
-        <h3>Добавить точку магазина (GPS)</h3>
-        <input type="text" id="store-name" placeholder="Название магазина">
-        <input type="text" id="store-address" placeholder="Адрес">
-        <div class="row">
-          <input type="number" step="any" id="store-lat" placeholder="Широта (Lat)">
-          <input type="number" step="any" id="store-lng" placeholder="Долгота (Lng)">
+        <h3>📍 Добавить точку магазина (GPS)</h3>
+        <div class="input-group">
+          <label>Название магазина</label>
+          <input type="text" id="store-name" placeholder="Супермаркет mPay">
         </div>
-        <input type="text" id="store-image" placeholder="URL фото магазина">
-        <button onclick="addStore()">Сохранить точку в GPS</button>
+        <div class="input-group">
+          <label>Адрес</label>
+          <input type="text" id="store-address" placeholder="ул. Пушкина, 10">
+        </div>
+        <div class="row">
+          <div class="input-group">
+            <label>Широта (Lat)</label>
+            <input type="number" step="any" id="store-lat" placeholder="55.7558">
+          </div>
+          <div class="input-group">
+            <label>Долгота (Lng)</label>
+            <input type="number" step="any" id="store-lng" placeholder="37.6173">
+          </div>
+        </div>
+        <div class="input-group">
+          <label>URL Фотографии магазина</label>
+          <input type="text" id="store-image" placeholder="https://images.unsplash.com/photo-1578916171728-46686eac8d58">
+        </div>
+        <button class="btn" onclick="addStore()">Сохранить точку GPS</button>
 
-        <h3>Магазины в базе</h3>
+        <h3 style="margin-top: 24px;">🏪 Магазины в базе</h3>
         <div class="item-list" id="stores-list"></div>
       </div>
     </div>
@@ -111,70 +194,68 @@
     function logout() { auth.signOut(); }
 
     function loadData() {
-      // Загрузка терминалов
       db.ref('terminals').on('value', snap => {
         const list = document.getElementById('terminals-list');
         list.innerHTML = '';
-        if (!snap.exists()) return list.innerHTML = '<p>Нет терминалов</p>';
+        if (!snap.exists()) return list.innerHTML = '<p style="color:#6B7280;">Терминалов нет</p>';
         snap.forEach(child => {
           const val = child.val();
           const isBlocked = val.status === 'blocked';
           list.innerHTML += `
             <div class="item-card">
               <div>
-                <strong>${child.key}</strong> <br>
-                <small style="color: ${isBlocked ? '#EF4444' : '#10B981'}">${val.status || 'active'}</small>
+                <strong>${child.key}</strong><br>
+                <span class="badge ${isBlocked ? 'badge-blocked' : 'badge-active'}">${val.status || 'active'}</span>
               </div>
-              <div class="row" style="width: auto;">
-                <button class="${isBlocked ? 'btn-warning' : ''}" onclick="toggleTerminal('${child.key}', '${val.status}')">
+              <div class="row" style="margin:0;">
+                <button class="btn ${isBlocked ? 'btn-warning' : ''} btn-sm" onclick="toggleTerminal('${child.key}', '${val.status}')">
                   ${isBlocked ? 'Разблокировать' : 'Заблокировать'}
                 </button>
-                <button class="btn-danger" onclick="deleteTerminal('${child.key}')">Удалить</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteTerminal('${child.key}')">Удалить</button>
               </div>
             </div>`;
         });
       });
 
-      // Загрузка карт
       db.ref('cards').on('value', snap => {
         const list = document.getElementById('cards-list');
         list.innerHTML = '';
-        if (!snap.exists()) return list.innerHTML = '<p>Нет карт в базе</p>';
+        if (!snap.exists()) return list.innerHTML = '<p style="color:#6B7280;">Карт нет</p>';
         snap.forEach(child => {
           const val = child.val();
           list.innerHTML += `
             <div class="item-card">
               <div>
-                <strong>${child.key}</strong> <br>
-                <small>Баланс: ${val.balance || 0} ₽</small>
+                <strong>💳 ${child.key}</strong><br>
+                <small style="color:#A855F7;">Баланс: ${val.balance || 0} ₽</small>
               </div>
-              <button class="btn-danger" style="width: auto;" onclick="deleteCard('${child.key}')">Удалить карту</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteCard('${child.key}')">Удалить</button>
             </div>`;
         });
       });
 
-      // Загрузка магазинов
       db.ref('stores').on('value', snap => {
         const list = document.getElementById('stores-list');
         list.innerHTML = '';
-        if (!snap.exists()) return list.innerHTML = '<p>Нет сохраненных магазинов</p>';
+        if (!snap.exists()) return list.innerHTML = '<p style="color:#6B7280;">Магазинов нет</p>';
         snap.forEach(child => {
           const val = child.val();
           list.innerHTML += `
             <div class="item-card">
-              <div>
-                <strong>${val.name}</strong> (${val.address})<br>
-                <small>Lat: ${val.lat}, Lng: ${val.lng}</small>
+              <div style="display:flex; gap:12px; align-items:center;">
+                ${val.imageUrl ? `<img src="${val.imageUrl}" style="width:48px; height:48px; border-radius:8px; object-fit:cover;">` : ''}
+                <div>
+                  <strong>${val.name}</strong> (${val.address})<br>
+                  <small style="color:#9CA3AF;">Lat: ${val.lat}, Lng: ${val.lng}</small>
+                </div>
               </div>
-              <button class="btn-danger" style="width: auto;" onclick="deleteStore('${child.key}')">Удалить</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteStore('${child.key}')">Удалить</button>
             </div>`;
         });
       });
     }
 
-    function toggleTerminal(id, current) {
-      db.ref(`terminals/${id}`).update({ status: current === 'blocked' ? 'active' : 'blocked' });
-    }
+    function toggleTerminal(id, current) { db.ref(`terminals/${id}`).update({ status: current === 'blocked' ? 'active' : 'blocked' }); }
     function deleteTerminal(id) { db.ref(`terminals/${id}`).remove(); }
     function deleteCard(id) { db.ref(`cards/${id}`).remove(); }
     function deleteStore(id) { db.ref(`stores/${id}`).remove(); }
