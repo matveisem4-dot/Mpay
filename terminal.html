@@ -25,7 +25,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
     body { background: var(--bg); color: var(--text); min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-image: radial-gradient(circle at 50% 10%, rgba(0, 255, 157, 0.12), transparent 60%); }
     
-    /* SPLASH OVERLAY WITH FIXED SVG */
+    /* FIXED SPLASH SCREEN ANIMATION */
     .splash-screen {
       position: fixed; inset: 0; background: #050811; z-index: 99999;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -37,20 +37,20 @@
     .splash-circle {
       fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round;
       pathLength: 1; stroke-dasharray: 1; stroke-dashoffset: 1;
-      animation: drawCircle 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.8s;
+      animation: drawCircle 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards 2.1s;
     }
     .splash-check {
       fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round;
       pathLength: 1; stroke-dasharray: 1; stroke-dashoffset: 1;
-      animation: drawCheck 0.5s ease forwards 0.3s;
+      animation: drawCheck 0.5s ease forwards 1.6s;
     }
     .splash-pay {
       font-size: 3rem; font-weight: 900; color: #ffffff; white-space: nowrap; overflow: hidden;
-      display: inline-block; animation: fadePay 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.2s;
+      display: inline-block; animation: fadePay 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.0s;
     }
     .splash-sub {
       font-size: 0.85rem; font-weight: 700; color: var(--accent); text-transform: uppercase;
-      letter-spacing: 3px; margin-top: 12px; animation: fadeSub 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.2s;
+      letter-spacing: 3px; margin-top: 12px; animation: fadeSub 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.0s;
     }
 
     @keyframes drawCheck { to { stroke-dashoffset: 0; } }
@@ -68,7 +68,6 @@
     .screen { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 14px; justify-content: center; overflow-y: auto; }
     .hidden { display: none !important; }
 
-    /* SBERBANK-STYLE AD SCREENSAVER */
     .screensaver {
       position: absolute; inset: 0; background: radial-gradient(circle at center, #0f2b20 0%, #050811 100%);
       z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -104,12 +103,12 @@
 </head>
 <body onclick="resetIdleTimer()" onmousemove="resetIdleTimer()" onkeydown="resetIdleTimer()">
 
-  <!-- SPLASH OVERLAY WITH FIXED SVG -->
+  <!-- SPLASH OVERLAY WITH ADJUSTED CHECKMARK POSITION -->
   <div id="splash" class="splash-screen">
     <div class="splash-brand">
       <svg class="splash-svg" viewBox="0 0 120 120">
         <circle class="splash-circle" cx="60" cy="60" r="50" />
-        <text x="28" y="72" font-family="'Segoe UI', sans-serif" font-size="42" font-weight="900" fill="var(--accent)">M</text>
+        <text x="25" y="72" font-family="'Segoe UI', sans-serif" font-size="42" font-weight="900" fill="var(--accent)">M</text>
         <path class="splash-check" d="M 68 62 L 78 72 L 98 46" />
       </svg>
       <div class="splash-pay">Pay</div>
@@ -251,7 +250,7 @@
         if (document.getElementById('sc-idle').classList.contains('hidden') === false) {
           showScreensaver();
         }
-      }, 15000); // 15 seconds idle timeout
+      }, 15000);
     }
 
     function showScreensaver() {
@@ -395,7 +394,6 @@
       if (payloadText && payloadText.startsWith("MPAY:")) {
         const parts = payloadText.split(":");
         const cardNum = parts[1];
-        const payloadPin = parts[2] || "";
 
         const cSnap = await db.ref(`cards/${cardNum}`).once('value');
         if (cSnap.exists()) {
@@ -403,7 +401,6 @@
           if (card.isFrozen) return alert("Карта заморожена!");
 
           pendingCard = card;
-          // PIN CHECK MANDATORY IF AMOUNT > 10 EGP
           if (curAmount > 10) {
             document.getElementById('pin-modal').classList.remove('hidden');
           } else {
