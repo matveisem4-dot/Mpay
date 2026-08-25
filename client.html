@@ -26,7 +26,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
     body { background: var(--bg); color: var(--text); min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-image: radial-gradient(circle at 50% 10%, rgba(0, 136, 255, 0.15), transparent 60%); }
 
-    /* SPLASH SCREEN FIX */
+    /* FIXED SPLASH SCREEN ANIMATION */
     .splash-screen {
       position: fixed; inset: 0; background: #050b18; z-index: 99999;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -38,20 +38,21 @@
     .splash-circle {
       fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round;
       pathLength: 1; stroke-dasharray: 1; stroke-dashoffset: 1;
-      animation: drawCircle 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.8s;
+      animation: drawCircle 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards 2.1s;
     }
+    /* Draw checkmark strictly AFTER "Pay" erased */
     .splash-check {
       fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round;
       pathLength: 1; stroke-dasharray: 1; stroke-dashoffset: 1;
-      animation: drawCheck 0.5s ease forwards 0.3s;
+      animation: drawCheck 0.5s ease forwards 1.6s;
     }
     .splash-pay {
       font-size: 3rem; font-weight: 900; color: #ffffff; white-space: nowrap; overflow: hidden;
-      display: inline-block; animation: fadePay 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.2s;
+      display: inline-block; animation: fadePay 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.0s;
     }
     .splash-sub {
       font-size: 0.85rem; font-weight: 700; color: var(--accent); text-transform: uppercase;
-      letter-spacing: 3px; margin-top: 12px; animation: fadeSub 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.2s;
+      letter-spacing: 3px; margin-top: 12px; animation: fadeSub 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.0s;
     }
 
     @keyframes drawCheck { to { stroke-dashoffset: 0; } }
@@ -73,7 +74,6 @@
     .screen { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 12px; justify-content: center; overflow-y: auto; }
     .hidden { display: none !important; }
 
-    /* CARD STYLING & FROZEN STATE */
     .virtual-card { width: 100%; height: 185px; background: linear-gradient(135deg, #0055ff, #001a4d); border: 1px solid var(--accent); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 30px var(--accent-glow); position: relative; transition: all 0.4s ease; overflow: hidden; }
     .virtual-card.is-frozen { background: linear-gradient(135deg, #0f172a, #1e293b) !important; border-color: var(--frozen) !important; box-shadow: 0 10px 30px rgba(56, 189, 248, 0.2) !important; }
     .virtual-card.is-frozen::before { content: ''; position: absolute; inset: 0; background: rgba(56, 189, 248, 0.08); backdrop-filter: blur(2px); pointer-events: none; }
@@ -105,12 +105,13 @@
 </head>
 <body>
 
-  <!-- SPLASH OVERLAY WITH FIXED SVG -->
+  <!-- SPLASH OVERLAY WITH ADJUSTED CHECKMARK POSITION -->
   <div id="splash" class="splash-screen">
     <div class="splash-brand">
       <svg class="splash-svg" viewBox="0 0 120 120">
         <circle class="splash-circle" cx="60" cy="60" r="50" />
-        <text x="28" y="72" font-family="'Segoe UI', sans-serif" font-size="42" font-weight="900" fill="var(--accent)">M</text>
+        <text x="25" y="72" font-family="'Segoe UI', sans-serif" font-size="42" font-weight="900" fill="var(--accent)">M</text>
+        <!-- Moved checkmark coordinates (M 68 62 L 78 72 L 98 46) so it's placed next to M without overlap -->
         <path class="splash-check" d="M 68 62 L 78 72 L 98 46" />
       </svg>
       <div class="splash-pay">Pay</div>
@@ -121,10 +122,33 @@
   <div class="app-card">
     <div class="header">
       <div class="brand"><i class="fa-solid fa-wallet"></i> MPAY CLIENT</div>
+      <button id="logout-btn" onclick="logoutClient()" class="btn btn-glass hidden" style="width: auto; padding: 6px 12px; font-size: 0.75rem;"><i class="fa-solid fa-right-from-bracket"></i> Выйти</button>
     </div>
 
-    <!-- MAIN DASHBOARD -->
-    <main id="sc-main" class="screen">
+    <!-- INITIAL AUTH SCREEN (ONLY CARDS + PIN + READ NFC) -->
+    <main id="sc-auth" class="screen" style="text-align: center;">
+      <i class="fa-solid fa-shield-halved" style="font-size: 3rem; color: var(--accent); margin-bottom: 8px;"></i>
+      <h3 style="color: #fff;">Привязать Карту</h3>
+      <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 10px;">Считайте карту через NFC или введите данные</p>
+
+      <button onclick="scanNfcToFill()" class="btn btn-main" style="margin-bottom: 10px;">
+        <i class="fa-solid fa-wifi"></i> Считать карту через NFC
+      </button>
+
+      <div class="input-group">
+        <input type="text" id="auth-card-input" class="input" placeholder="Номер карты (4400...)" style="margin-bottom: 10px;" />
+        <input type="password" id="auth-pin-input" class="input" maxlength="4" placeholder="PIN-код карты (••••)" />
+      </div>
+
+      <button onclick="loginClient()" class="btn btn-glass" style="margin-top: 10px; border-color: var(--accent); color: var(--accent);">
+        <i class="fa-solid fa-link"></i> Авторизоваться
+      </button>
+
+      <div id="auth-status" class="status-msg"></div>
+    </main>
+
+    <!-- MAIN DASHBOARD (HIDDEN UNTIL PIN VERIFIED) -->
+    <main id="sc-main" class="screen hidden">
       <div id="virtual-card" class="virtual-card">
         <div class="frozen-badge"><i class="fa-solid fa-snowflake"></i> ЗАМОРОЖЕНА</div>
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -146,11 +170,6 @@
         <button id="btn-toggle-freeze" onclick="toggleFreezeCard()" class="btn btn-freeze" style="flex: 1;"><i class="fa-solid fa-snowflake"></i> Заморозить</button>
         <button onclick="openPinChangeModal()" class="btn btn-glass" style="flex: 1;"><i class="fa-solid fa-key"></i> Сменить PIN</button>
       </div>
-
-      <div class="input-group" style="margin-top: 5px;">
-        <input type="text" id="bind-card-input" class="input" placeholder="Введите номер (4400...)" />
-      </div>
-      <button onclick="bindUserCardManual()" class="btn btn-glass" style="padding: 10px;"><i class="fa-solid fa-link"></i> Привязать карту</button>
 
       <div id="client-status" class="status-msg"></div>
     </main>
@@ -219,12 +238,14 @@
     let pendingPaymentData = null;
     let nfcController = null;
 
-    let savedCardNum = localStorage.getItem('mpay_client_card');
-    if (savedCardNum) loadCardData(savedCardNum);
-
     function goto(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
       document.getElementById(id).classList.remove('hidden');
+    }
+
+    function setAuthStatus(msg, isError = false) {
+      const el = document.getElementById('auth-status');
+      el.innerHTML = `<span style="color: ${isError ? 'var(--danger)' : 'var(--success)'}">${msg}</span>`;
     }
 
     function setStatus(msg, isError = false) {
@@ -232,15 +253,68 @@
       el.innerHTML = `<span style="color: ${isError ? 'var(--danger)' : 'var(--success)'}">${msg}</span>`;
     }
 
-    function loadCardData(cardNum) {
+    /* NFC READ FOR AUTO-FILLING CARD NUMBER IN AUTH */
+    async function scanNfcToFill() {
+      if (!('NDEFReader' in window)) return setAuthStatus("Web NFC не поддерживается вашим браузером", true);
+      setAuthStatus("Поднесите карту/стикер к телефону...");
+      
+      try {
+        const ndef = new NDEFReader();
+        await ndef.scan();
+        ndef.addEventListener("reading", ({ message }) => {
+          for (const record of message.records) {
+            if (record.recordType === "text") {
+              const text = new TextDecoder().decode(record.data);
+              let cardNum = text;
+              if (text.startsWith("MPAY:")) cardNum = text.split(":")[1];
+              document.getElementById('auth-card-input').value = cardNum;
+              setAuthStatus("Номер карты успешно считан!");
+              return;
+            }
+          }
+        }, { once: true });
+      } catch (e) {
+        setAuthStatus("Ошибка чтения NFC: " + e.message, true);
+      }
+    }
+
+    /* AUTHENTICATION & PIN CHECK BEFORE UNLOCKING DASHBOARD */
+    async function loginClient() {
+      const cardNum = document.getElementById('auth-card-input').value.trim();
+      const enteredPin = document.getElementById('auth-pin-input').value.trim();
+
+      if (!cardNum || !enteredPin) return setAuthStatus("Введите номер карты и PIN!", true);
+
+      setAuthStatus("Проверка данных...");
+
+      try {
+        const snap = await db.ref(`cards/${cardNum}`).once('value');
+        if (!snap.exists()) return setAuthStatus("Карта не найдена в системе!", true);
+
+        const card = snap.val();
+        if (String(card.pin) !== String(enteredPin)) {
+          return setAuthStatus("Неверный PIN-код! Доступ запрещен.", true);
+        }
+
+        // Verified! Unlocking Dashboard
+        activeCardData = card;
+        subscribeToCardUpdates(cardNum);
+        
+        document.getElementById('logout-btn').classList.remove('hidden');
+        goto('sc-main');
+        setAuthStatus("");
+      } catch (e) {
+        setAuthStatus("Ошибка авторизации: " + e.message, true);
+      }
+    }
+
+    function subscribeToCardUpdates(cardNum) {
       db.ref(`cards/${cardNum}`).on('value', snap => {
         if (snap.exists()) {
           activeCardData = snap.val();
-          localStorage.setItem('mpay_client_card', cardNum);
           document.getElementById('user-card').textContent = cardNum.replace(/(.{4})/g, '$1 ').trim();
           document.getElementById('user-bal').textContent = parseFloat(activeCardData.balance || 0).toFixed(2);
           
-          // Update Frozen Card UI State
           const cardEl = document.getElementById('virtual-card');
           const freezeBtn = document.getElementById('btn-toggle-freeze');
           if (activeCardData.isFrozen) {
@@ -250,21 +324,21 @@
             cardEl.classList.remove('is-frozen');
             freezeBtn.innerHTML = `<i class="fa-solid fa-snowflake"></i> Заморозить`;
           }
-        } else {
-          setStatus("Карта не найдена в системе", true);
         }
       });
     }
 
-    async function bindUserCardManual() {
-      const num = document.getElementById('bind-card-input').value.trim();
-      if (!num) return setStatus("Введите номер карты!", true);
-      loadCardData(num);
-      setStatus("Карта успешно привязана!");
+    function logoutClient() {
+      if (activeCardData) db.ref(`cards/${activeCardData.cardNumber}`).off();
+      activeCardData = null;
+      document.getElementById('auth-card-input').value = "";
+      document.getElementById('auth-pin-input').value = "";
+      document.getElementById('logout-btn').classList.add('hidden');
+      goto('sc-auth');
     }
 
     async function toggleFreezeCard() {
-      if (!activeCardData) return setStatus("Привяжите карту!", true);
+      if (!activeCardData) return;
       const newStatus = !activeCardData.isFrozen;
       await db.ref(`cards/${activeCardData.cardNumber}`).update({ isFrozen: newStatus });
       setStatus(newStatus ? "Карта заморожена" : "Карта разморожена");
@@ -272,7 +346,7 @@
 
     /* NFC PHONE PAYMENT TRANSMISSION */
     async function startNfcPay() {
-      if (!activeCardData) return setStatus("Сначала привяжите карту!", true);
+      if (!activeCardData) return;
       if (activeCardData.isFrozen) return setStatus("Карта заморожена! Разморозьте для оплаты.", true);
       if (!('NDEFReader' in window)) return setStatus("Web NFC не поддерживается вашим браузером", true);
 
@@ -296,7 +370,7 @@
 
     /* CHANGE PIN */
     function openPinChangeModal() {
-      if (!activeCardData) return setStatus("Сначала привяжите карту!", true);
+      if (!activeCardData) return;
       document.getElementById('change-pin-modal').classList.remove('hidden');
     }
     function closePinChangeModal() {
@@ -318,7 +392,7 @@
 
     /* MY QR CODE GENERATION */
     function showMyQrCode() {
-      if (!activeCardData) return setStatus("Сначала привяжите карту!", true);
+      if (!activeCardData) return;
       document.getElementById('my-qrcode-container').innerHTML = "";
       new QRCode(document.getElementById('my-qrcode-container'), {
         text: `MPAY:${activeCardData.cardNumber}:${activeCardData.pin}`,
@@ -331,7 +405,7 @@
 
     /* QR CODE SCANNER & PAYMENT */
     function startQrScanner() {
-      if (!activeCardData) return setStatus("Сначала привяжите карту!", true);
+      if (!activeCardData) return;
       if (activeCardData.isFrozen) return setStatus("Карта заморожена!", true);
       goto('sc-qr-scan');
       
