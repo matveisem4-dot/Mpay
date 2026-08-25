@@ -21,17 +21,19 @@
       --muted: #64748b;
       --danger: #ff3366;
       --success: #00ff9d;
+      --frozen: #38bdf8;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
     body { background: var(--bg); color: var(--text); min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-image: radial-gradient(circle at 50% 10%, rgba(0, 136, 255, 0.15), transparent 60%); }
 
+    /* SPLASH SCREEN FIX */
     .splash-screen {
       position: fixed; inset: 0; background: #050b18; z-index: 99999;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       animation: splashFadeOut 0.4s ease-out forwards 3.2s;
     }
     .splash-brand { display: flex; align-items: center; justify-content: center; position: relative; }
-    .splash-svg { width: 110px; height: 110px; flex-shrink: 0; overflow: visible; }
+    .splash-svg { width: 120px; height: 120px; flex-shrink: 0; overflow: visible; }
     
     .splash-circle {
       fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round;
@@ -71,13 +73,21 @@
     .screen { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 12px; justify-content: center; overflow-y: auto; }
     .hidden { display: none !important; }
 
-    .virtual-card { width: 100%; height: 180px; background: linear-gradient(135deg, #0055ff, #001a4d); border: 1px solid var(--accent); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 30px var(--accent-glow); position: relative; }
+    /* CARD STYLING & FROZEN STATE */
+    .virtual-card { width: 100%; height: 185px; background: linear-gradient(135deg, #0055ff, #001a4d); border: 1px solid var(--accent); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 30px var(--accent-glow); position: relative; transition: all 0.4s ease; overflow: hidden; }
+    .virtual-card.is-frozen { background: linear-gradient(135deg, #0f172a, #1e293b) !important; border-color: var(--frozen) !important; box-shadow: 0 10px 30px rgba(56, 189, 248, 0.2) !important; }
+    .virtual-card.is-frozen::before { content: ''; position: absolute; inset: 0; background: rgba(56, 189, 248, 0.08); backdrop-filter: blur(2px); pointer-events: none; }
+    
+    .frozen-badge { display: none; position: absolute; top: 15px; right: 15px; background: rgba(56, 189, 248, 0.2); color: var(--frozen); border: 1px solid var(--frozen); padding: 4px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 800; letter-spacing: 1px; }
+    .virtual-card.is-frozen .frozen-badge { display: flex; align-items: center; gap: 5px; }
+
     .card-num { font-size: 1.2rem; font-weight: 700; letter-spacing: 2px; }
     .card-bal { font-size: 1.8rem; font-weight: 800; }
 
-    .btn { width: 100%; padding: 14px; border-radius: 16px; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s ease; }
+    .btn { width: 100%; padding: 13px; border-radius: 16px; border: none; font-size: 0.9rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s ease; }
     .btn-main { background: linear-gradient(135deg, #0088ff, #0055cc); color: #fff; box-shadow: 0 4px 20px var(--accent-glow); }
     .btn-glass { background: rgba(255, 255, 255, 0.04); color: #fff; border: 1px solid rgba(255,255,255,0.08); }
+    .btn-freeze { background: rgba(56, 189, 248, 0.15); color: var(--frozen); border: 1px solid rgba(56, 189, 248, 0.4); }
     .btn-danger { background: rgba(255, 51, 102, 0.15); color: var(--danger); border: 1px solid rgba(255, 51, 102, 0.3); }
 
     .input-group { width: 100%; }
@@ -90,18 +100,18 @@
 
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 99; padding: 20px; }
     .modal-card { background: #0c1424; border: 1px solid var(--border); border-radius: 24px; padding: 24px; width: 100%; max-width: 320px; text-align: center; }
-    .pin-input { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; font-size: 1.6rem; text-align: center; letter-spacing: 8px; margin: 15px 0; outline: none; }
+    .pin-input { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; font-size: 1.4rem; text-align: center; letter-spacing: 6px; margin: 10px 0; outline: none; }
   </style>
 </head>
 <body>
 
-  <!-- SPLASH OVERLAY -->
+  <!-- SPLASH OVERLAY WITH FIXED SVG -->
   <div id="splash" class="splash-screen">
     <div class="splash-brand">
-      <svg class="splash-svg" viewBox="0 0 100 100">
-        <circle class="splash-circle" cx="50" cy="50" r="42" />
-        <text x="22" y="66" font-family="'Segoe UI', sans-serif" font-size="46" font-weight="900" fill="var(--accent)">M</text>
-        <path class="splash-check" d="M 50 52 L 62 64 L 82 38" />
+      <svg class="splash-svg" viewBox="0 0 120 120">
+        <circle class="splash-circle" cx="60" cy="60" r="50" />
+        <text x="28" y="72" font-family="'Segoe UI', sans-serif" font-size="42" font-weight="900" fill="var(--accent)">M</text>
+        <path class="splash-check" d="M 68 62 L 78 72 L 98 46" />
       </svg>
       <div class="splash-pay">Pay</div>
     </div>
@@ -115,7 +125,8 @@
 
     <!-- MAIN DASHBOARD -->
     <main id="sc-main" class="screen">
-      <div class="virtual-card">
+      <div id="virtual-card" class="virtual-card">
+        <div class="frozen-badge"><i class="fa-solid fa-snowflake"></i> ЗАМОРОЖЕНА</div>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <span style="font-size: 0.8rem; opacity: 0.8;">M Pay Digital Card</span>
           <i class="fa-solid fa-wifi" style="color: var(--accent);"></i>
@@ -127,51 +138,71 @@
         <div class="card-num" id="user-card">Не привязана</div>
       </div>
 
-      <button onclick="startQrScanner()" class="btn btn-main"><i class="fa-solid fa-qrcode"></i> Оплатить по QR терминала</button>
-      <button onclick="showMyQrCode()" class="btn btn-glass"><i class="fa-solid fa-id-card"></i> Показать мой QR карт-счета</button>
-      <button onclick="writeToNfcTag()" class="btn btn-glass"><i class="fa-solid fa-tag"></i> Записать карту на NFC-стикер</button>
-      <button onclick="scanNfcToBind()" class="btn btn-glass"><i class="fa-solid fa-wifi"></i> Считать NFC карту</button>
+      <button onclick="startNfcPay()" class="btn btn-main"><i class="fa-solid fa-wifi"></i> Оплатить телефоном (NFC)</button>
+      <button onclick="startQrScanner()" class="btn btn-glass"><i class="fa-solid fa-qrcode"></i> Оплатить по QR терминала</button>
+      <button onclick="showMyQrCode()" class="btn btn-glass"><i class="fa-solid fa-id-card"></i> Мой QR код карты</button>
+      
+      <div style="display: flex; gap: 8px;">
+        <button id="btn-toggle-freeze" onclick="toggleFreezeCard()" class="btn btn-freeze" style="flex: 1;"><i class="fa-solid fa-snowflake"></i> Заморозить</button>
+        <button onclick="openPinChangeModal()" class="btn btn-glass" style="flex: 1;"><i class="fa-solid fa-key"></i> Сменить PIN</button>
+      </div>
 
       <div class="input-group" style="margin-top: 5px;">
-        <input type="text" id="bind-card-input" class="input" placeholder="Или введите номер (4400...)" />
+        <input type="text" id="bind-card-input" class="input" placeholder="Введите номер (4400...)" />
       </div>
-      <button onclick="bindUserCardManual()" class="btn btn-glass" style="padding: 10px;"><i class="fa-solid fa-link"></i> Привязать вручную</button>
+      <button onclick="bindUserCardManual()" class="btn btn-glass" style="padding: 10px;"><i class="fa-solid fa-link"></i> Привязать карту</button>
 
       <div id="client-status" class="status-msg"></div>
+    </main>
+
+    <!-- NFC PAY MODE SCREEN -->
+    <main id="sc-nfc-pay" class="screen hidden" style="text-align: center;">
+      <h3 style="color: var(--accent);"><i class="fa-solid fa-wifi"></i> NFC Оплата</h3>
+      <p style="color: var(--muted); font-size: 0.85rem; margin-top: 4px;">Поднесите телефон к терминалу или считывателю</p>
+      
+      <div style="margin: 30px 0; font-size: 4rem; color: var(--accent); animation: pulse 1.5s infinite;">
+        <i class="fa-solid fa-mobile-screen-button"></i>
+      </div>
+
+      <p id="nfc-pay-status" style="font-size: 0.85rem; color: var(--success);">Режим передачи карты активен...</p>
+
+      <button onclick="stopNfcPay()" class="btn btn-danger" style="margin-top: auto;">Отмена</button>
     </main>
 
     <!-- QR SCANNER SCREEN -->
     <main id="sc-qr-scan" class="screen hidden">
       <h3 style="text-align: center; color: var(--accent);">Сканер QR Терминала</h3>
-      <p style="text-align: center; color: var(--muted); font-size: 0.8rem;">Наведите камеру на QR-код терминала</p>
-      
       <div id="reader"></div>
-
       <button onclick="stopQrScanner()" class="btn btn-danger" style="margin-top: 10px;">Отмена</button>
     </main>
 
     <!-- MY QR CODE SCREEN -->
     <main id="sc-my-qr" class="screen hidden" style="text-align: center;">
       <h3 style="color: var(--accent);">Ваш QR Оплаты</h3>
-      <p style="color: var(--muted); font-size: 0.8rem;">Покажите этот QR-код для сканирования терминалом</p>
-
-      <div class="qr-box">
-        <div id="my-qrcode-container"></div>
-      </div>
-
+      <div class="qr-box"><div id="my-qrcode-container"></div></div>
       <p style="font-size: 0.8rem; color: var(--muted);" id="my-qr-card-text"></p>
-
       <button onclick="goto('sc-main')" class="btn btn-danger" style="margin-top: 15px;">Назад</button>
     </main>
   </div>
 
-  <!-- PIN CONFIRM MODAL FOR QR PAY -->
+  <!-- PIN CHANGE MODAL -->
+  <div id="change-pin-modal" class="modal hidden">
+    <div class="modal-card">
+      <i class="fa-solid fa-key" style="font-size: 2rem; color: var(--accent); margin-bottom: 8px;"></i>
+      <h3>Смена PIN-кода</h3>
+      <input type="password" id="old-pin-field" class="pin-input" maxlength="4" placeholder="Старый PIN" />
+      <input type="password" id="new-pin-field" class="pin-input" maxlength="4" placeholder="Новый PIN" />
+      <button onclick="confirmPinChange()" class="btn btn-main">Сохранить</button>
+      <button onclick="closePinChangeModal()" class="btn btn-danger" style="margin-top: 8px;">Отмена</button>
+    </div>
+  </div>
+
+  <!-- PAYMENT PIN CONFIRM MODAL -->
   <div id="pin-modal" class="modal hidden">
     <div class="modal-card">
       <i class="fa-solid fa-shield-halved" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 10px;"></i>
       <h3>Подтверждение Оплаты</h3>
-      <p style="color: var(--muted); font-size: 0.8rem; margin-top: 4px;">Сумма к оплате: <strong id="pay-amt-txt" style="color: var(--accent);">0</strong> EGP</p>
-      <p style="color: var(--muted); font-size: 0.75rem;">Терминал: <span id="pay-term-txt"></span></p>
+      <p style="color: var(--muted); font-size: 0.8rem; margin-top: 4px;">Сумма: <strong id="pay-amt-txt" style="color: var(--accent);">0</strong> EGP</p>
       <input type="password" id="pin-field" class="pin-input" maxlength="4" placeholder="••••" />
       <button onclick="confirmQrPayment()" class="btn btn-main">Оплатить</button>
       <button onclick="closePinModal()" class="btn btn-danger" style="margin-top: 8px;">Отмена</button>
@@ -186,6 +217,7 @@
     let activeCardData = null;
     let html5QrScanner = null;
     let pendingPaymentData = null;
+    let nfcController = null;
 
     let savedCardNum = localStorage.getItem('mpay_client_card');
     if (savedCardNum) loadCardData(savedCardNum);
@@ -207,6 +239,17 @@
           localStorage.setItem('mpay_client_card', cardNum);
           document.getElementById('user-card').textContent = cardNum.replace(/(.{4})/g, '$1 ').trim();
           document.getElementById('user-bal').textContent = parseFloat(activeCardData.balance || 0).toFixed(2);
+          
+          // Update Frozen Card UI State
+          const cardEl = document.getElementById('virtual-card');
+          const freezeBtn = document.getElementById('btn-toggle-freeze');
+          if (activeCardData.isFrozen) {
+            cardEl.classList.add('is-frozen');
+            freezeBtn.innerHTML = `<i class="fa-solid fa-sun"></i> Разморозить`;
+          } else {
+            cardEl.classList.remove('is-frozen');
+            freezeBtn.innerHTML = `<i class="fa-solid fa-snowflake"></i> Заморозить`;
+          }
         } else {
           setStatus("Карта не найдена в системе", true);
         }
@@ -220,46 +263,57 @@
       setStatus("Карта успешно привязана!");
     }
 
-    /* NFC READING & WRITING IN CLIENT APP */
-    async function scanNfcToBind() {
+    async function toggleFreezeCard() {
+      if (!activeCardData) return setStatus("Привяжите карту!", true);
+      const newStatus = !activeCardData.isFrozen;
+      await db.ref(`cards/${activeCardData.cardNumber}`).update({ isFrozen: newStatus });
+      setStatus(newStatus ? "Карта заморожена" : "Карта разморожена");
+    }
+
+    /* NFC PHONE PAYMENT TRANSMISSION */
+    async function startNfcPay() {
+      if (!activeCardData) return setStatus("Сначала привяжите карту!", true);
+      if (activeCardData.isFrozen) return setStatus("Карта заморожена! Разморозьте для оплаты.", true);
       if (!('NDEFReader' in window)) return setStatus("Web NFC не поддерживается вашим браузером", true);
+
+      goto('sc-nfc-pay');
       try {
-        setStatus("Поднесите NFC карту или стикер к телефону...");
+        nfcController = new AbortController();
         const ndef = new NDEFReader();
-        await ndef.scan();
-        ndef.addEventListener("reading", ({ message }) => {
-          for (const record of message.records) {
-            if (record.recordType === "text") {
-              const textDecoder = new TextDecoder(record.encoding || 'utf-8');
-              const text = textDecoder.decode(record.data);
-              if (text.startsWith("MPAY:")) {
-                const parts = text.split(":");
-                loadCardData(parts[1]);
-                setStatus(`NFC карта ${parts[1]} распознана и привязана!`);
-                return;
-              }
-            }
-          }
-          setStatus("Неизвестный формат NFC метки", true);
-        }, { once: true });
+        const payload = `MPAY:${activeCardData.cardNumber}:${activeCardData.pin}`;
+        
+        await ndef.write({ records: [{ recordType: "text", data: payload }] }, { signal: nfcController.signal });
+        document.getElementById('nfc-pay-status').textContent = "Карта передана на считыватель!";
       } catch (e) {
-        setStatus(`Ошибка NFC: ${e.message}`, true);
+        document.getElementById('nfc-pay-status').textContent = "Ошибка передачи NFC: " + e.message;
       }
     }
 
-    async function writeToNfcTag() {
-      if (!activeCardData) return setStatus("Сначала привяжите карту!", true);
-      if (!('NDEFReader' in window)) return setStatus("Web NFC не поддерживается на данном устройстве", true);
+    function stopNfcPay() {
+      if (nfcController) nfcController.abort();
+      goto('sc-main');
+    }
 
-      try {
-        setStatus("Поднесите чистую NFC-метку/стикер к телефону...");
-        const ndef = new NDEFReader();
-        const payload = `MPAY:${activeCardData.cardNumber}:${activeCardData.pin}`;
-        await ndef.write({ records: [{ recordType: "text", data: payload }] });
-        setStatus("Данные карты успешно записаны на NFC-стикер!");
-      } catch (e) {
-        setStatus(`Ошибка записи NFC: ${e.message}`, true);
-      }
+    /* CHANGE PIN */
+    function openPinChangeModal() {
+      if (!activeCardData) return setStatus("Сначала привяжите карту!", true);
+      document.getElementById('change-pin-modal').classList.remove('hidden');
+    }
+    function closePinChangeModal() {
+      document.getElementById('change-pin-modal').classList.add('hidden');
+      document.getElementById('old-pin-field').value = "";
+      document.getElementById('new-pin-field').value = "";
+    }
+    async function confirmPinChange() {
+      const oldPin = document.getElementById('old-pin-field').value.trim();
+      const newPin = document.getElementById('new-pin-field').value.trim();
+
+      if (oldPin !== activeCardData.pin) return alert("Старый PIN указан неверно!");
+      if (newPin.length !== 4 || isNaN(parseInt(newPin))) return alert("Новый PIN должен состоять из 4 цифр!");
+
+      await db.ref(`cards/${activeCardData.cardNumber}`).update({ pin: newPin });
+      closePinChangeModal();
+      setStatus("PIN-код успешно изменен!");
     }
 
     /* MY QR CODE GENERATION */
@@ -278,16 +332,15 @@
     /* QR CODE SCANNER & PAYMENT */
     function startQrScanner() {
       if (!activeCardData) return setStatus("Сначала привяжите карту!", true);
+      if (activeCardData.isFrozen) return setStatus("Карта заморожена!", true);
       goto('sc-qr-scan');
       
       html5QrScanner = new Html5Qrcode("reader");
       html5QrScanner.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 250, height: 250 } },
-        (decodedText) => {
-          handleScannedQr(decodedText);
-        },
-        (errorMessage) => { }
+        (decodedText) => { handleScannedQr(decodedText); },
+        () => {}
       ).catch(err => {
         setStatus("Не удалось открыть камеру: " + err, true);
         goto('sc-main');
@@ -296,30 +349,21 @@
 
     function stopQrScanner() {
       if (html5QrScanner) {
-        html5QrScanner.stop().then(() => {
-          html5QrScanner.clear();
-          goto('sc-main');
-        }).catch(() => goto('sc-main'));
-      } else {
-        goto('sc-main');
-      }
+        html5QrScanner.stop().then(() => { html5QrScanner.clear(); goto('sc-main'); }).catch(() => goto('sc-main'));
+      } else goto('sc-main');
     }
 
     function handleScannedQr(qrData) {
-      // URL format: mpay://pay?termId=TERM_1234&amt=100
       if (qrData.startsWith("mpay://pay")) {
         stopQrScanner();
         const urlParams = new URLSearchParams(qrData.split('?')[1]);
         const termId = urlParams.get('termId');
         const amt = parseFloat(urlParams.get('amt'));
 
-        if (!termId || isNaN(amt) || amt <= 0) {
-          return setStatus("Неверный QR-код терминала", true);
-        }
+        if (!termId || isNaN(amt) || amt <= 0) return setStatus("Неверный QR-код терминала", true);
 
         pendingPaymentData = { termId, amt };
         document.getElementById('pay-amt-txt').textContent = amt;
-        document.getElementById('pay-term-txt').textContent = termId;
         document.getElementById('pin-modal').classList.remove('hidden');
       } else {
         setStatus("Неизвестный QR код", true);
@@ -330,44 +374,22 @@
       const pin = document.getElementById('pin-field').value.trim();
       if (!activeCardData || !pendingPaymentData) return;
 
-      if (pin !== activeCardData.pin) {
-        alert("Неверный PIN код!");
-        return;
-      }
-
-      if (activeCardData.isFrozen) {
-        alert("Ваша карта заблокирована!");
-        closePinModal();
-        return;
-      }
-
-      if (!activeCardData.isAdminCard && activeCardData.balance < pendingPaymentData.amt) {
-        alert("Недостаточно средств на карте!");
-        closePinModal();
-        return;
-      }
+      if (pin !== activeCardData.pin) return alert("Неверный PIN код!");
+      if (activeCardData.isFrozen) return alert("Карта заморожена!");
+      if (!activeCardData.isAdminCard && activeCardData.balance < pendingPaymentData.amt) return alert("Недостаточно средств!");
 
       const newBal = activeCardData.isAdminCard ? activeCardData.balance : (activeCardData.balance - pendingPaymentData.amt);
       const txId = Date.now();
 
       try {
         await db.ref(`cards/${activeCardData.cardNumber}`).update({ balance: newBal });
-        
-        const txData = {
-          termId: pendingPaymentData.termId,
-          card: activeCardData.cardNumber,
-          amt: pendingPaymentData.amt,
-          type: 'qr_payment',
-          status: 'success',
-          ts: txId
-        };
-
+        const txData = { termId: pendingPaymentData.termId, card: activeCardData.cardNumber, amt: pendingPaymentData.amt, type: 'qr_payment', status: 'success', ts: txId };
         await db.ref(`transactions/${txId}`).set(txData);
         await db.ref(`terminals/${pendingPaymentData.termId}/lastTx`).set(txData);
 
         closePinModal();
-        setStatus(`Успешная оплата ${pendingPaymentData.amt} EGP на терминале ${pendingPaymentData.termId}!`);
-        alert(`Оплата ${pendingPaymentData.amt} EGP успешно проведена!`);
+        setStatus(`Успешная оплата ${pendingPaymentData.amt} EGP!`);
+        alert(`Оплата ${pendingPaymentData.amt} EGP прошла успешно!`);
       } catch (e) {
         alert("Ошибка проведения платежа: " + e.message);
       }
